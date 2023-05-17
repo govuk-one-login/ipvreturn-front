@@ -1,0 +1,11 @@
+version = 0.1
+[dev]
+[dev.deploy]
+[dev.deploy.parameters]
+stack_name = "frontend-main-richa"
+s3_prefix = "frontend-main-richa"
+region = "eu-west-2"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc-cri\""
+image_repositories = []
+confirm_changeset = false
