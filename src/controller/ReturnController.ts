@@ -33,7 +33,7 @@ export class ReturnController{
         const discoveryEndpoint = EnvironmentVariables.getDiscoveryEndpoint();
         const clientId = EnvironmentVariables.getClientId();
         const authorizeUrl = `${discoveryEndpoint}/authorize?response_type=code&scope=openid&client_id=${clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`
-        loggingHelper.info("Authorize url",authorizeUrl)
+        loggingHelper.info("Authorize url",{"authorizeUrl":authorizeUrl})
         return authorizeUrl;
     }
 
