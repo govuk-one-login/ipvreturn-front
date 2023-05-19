@@ -1,12 +1,6 @@
 /* eslint-disable no-console */
-//import { AppError } from "../utils/AppError";
-import {
-    DeleteCommandInput,
-    DynamoDBDocument,
-    PutCommand,
 
-} from "@aws-sdk/lib-dynamodb";
-
+import { DeleteCommandInput, DynamoDBDocument, PutCommand} from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import {Session} from "../models/Session";
 import {AppError} from "../utils/AppError";
@@ -48,31 +42,6 @@ export class ReturnService {
             loggingHelper.error("got error saving Access token details", {"error": error });
             throw new AppError(HttpCodesEnum.SERVER_ERROR, "deleteItem - failed: got error deleting session record");
         }
-
-
-        // if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
-        //     throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by authorization code");
-        // }
-        //
-        // return sessionItem.Items[0] as Session;
-
-        // const updateSessionInUse = new UpdateCommand({
-        //     TableName: this.tableName,
-        //     Key: { state },
-        //     UpdateExpression: "SET inUse = :inUse",
-        //     ExpressionAttributeValues: {
-        //         ":inUse": true
-        //     },
-        // });
-        //
-        // console.log({ message: "updating Access token details in dynamodb", updateSessionInUse });
-        // try {
-        //     await this.dynamo.send(updateSessionInUse);
-        //     console.log({ message: "updated Access token details in dynamodb" });
-        // } catch (error) {
-        //     //this.logger.error({ message: "got error saving Access token details", error });
-        //     throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Access token details");
-        // }
     }
 
     async createSession(): Promise<string> {
