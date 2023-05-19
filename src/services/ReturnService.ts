@@ -8,41 +8,44 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 import { randomUUID } from "crypto";
-import {Session} from "../models/session";
-import {AppError} from "../utils/appError";
-import {HttpCodesEnum} from "../utils/httpCodesEnum";
+import {Session} from "../models/Session";
+import {AppError} from "../utils/AppError";
+import {HttpCodesEnum} from "../utils/HttpCodesEnum";
+import {loggingHelper} from "../utils/LoggingHelper";
 
-export class returnService {
+export class ReturnService {
     readonly tableName: string;
 
     private readonly dynamo: DynamoDBDocument;
 
-    private static instance: returnService;
+    private static instance: ReturnService;
 
     private constructor(tableName: any, dynamoDbClient: DynamoDBDocument) {
         this.tableName = tableName;
         this.dynamo = dynamoDbClient;
     }
 
-    static getInstance(tableName: string, dynamoDbClient: DynamoDBDocument): returnService {
-        if (!returnService.instance) {
-            returnService.instance = new returnService(tableName, dynamoDbClient);
+    static getInstance(tableName: string, dynamoDbClient: DynamoDBDocument): ReturnService {
+        if (!ReturnService.instance) {
+            ReturnService.instance = new ReturnService(tableName, dynamoDbClient);
         }
-        return returnService.instance;
+        return ReturnService.instance;
     }
 
     async deleteSession(state: string): Promise<void> {
+        loggingHelper.info("Deleting session record in dynamodb");
+
         const params: DeleteCommandInput = {
             TableName: this.tableName,
             Key: { state }
         };
 
-        console.log(params)
+        loggingHelper.info("DeleteCommandInput: ", {"deleteCommandInput": params});
         try {
             await this.dynamo.delete(params);
-            console.log({ message: "deleted session record in dynamodb" });
+            loggingHelper.info("deleted session record in dynamodb" );
         } catch (error) {
-            //this.logger.error({ message: "got error saving Access token details", error });
+            loggingHelper.error("got error saving Access token details", {"error": error });
             throw new AppError(HttpCodesEnum.SERVER_ERROR, "deleteItem - failed: got error deleting session record");
         }
 
@@ -72,9 +75,9 @@ export class returnService {
         // }
     }
 
-    async saveEventData(): Promise<string> {
+    async createSession(): Promise<string> {
 
-        console.log({ message: "Saving session data to dynamodb"});
+        loggingHelper.info("Creating session record in dynamodb");
         const state = randomUUID();
 
         const putSessionCommand = new PutCommand({
@@ -82,17 +85,14 @@ export class returnService {
             Item: new Session(state),
         });
 
-        console.log("PutSessionInfoCommand: ", JSON.stringify( putSessionCommand ));
-        console.log("Creating session record" );
+        loggingHelper.info("PutSessionInfoCommand: ", {"putSessionCommand": putSessionCommand});
 
         try {
             await this.dynamo.send(putSessionCommand);
             return state;
         } catch (e: any) {
-            console.log({ message: "Failed to create session record in dynamo", e });
-            throw e;
-            //throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error updating session record");
+            loggingHelper.error("Failed to create session record in dynamo", {"error":e });
+            throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error updating session record");
         }
     }
-
 }

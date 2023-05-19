@@ -1,6 +1,7 @@
-import { AppError } from "./appError";
-import { HttpCodesEnum } from "./httpCodesEnum";
-import { Constants } from "./constants";
+import { AppError } from "./AppError";
+import { HttpCodesEnum } from "./HttpCodesEnum";
+import { Constants } from "./Constants";
+import {loggingHelper} from "./LoggingHelper";
 
 /**
  * Class to read, store, and return environment variables
@@ -16,6 +17,14 @@ export class EnvironmentVariables {
 	private static readonly CLIENT_ID = process.env.CLIENT_ID;
 
 	private static SESSION_TTL = process.env.SESSION_TTL!;
+
+	private static PORT = process.env.PORT!;
+
+	private static FRONT_END_CUSTOM_DOMAIN = process.env.FRONT_END_CUSTOM_DOMAIN;
+
+	private static readonly API_BASE_URL = process.env.API_BASE_URL;
+
+	private static readonly ACCOUNTS_DASHBOARD = process.env.ACCOUNTS_DASHBOARD;
 
 	/**
 	 * Accessor methods for env variable values
@@ -62,22 +71,38 @@ export class EnvironmentVariables {
 		return this.SESSION_TTL;
 	}
 
-	// private static validateConfiguration(envVar: string, defaultValue?: any): boolean {
-	// 	if (!process.env[envVar] || process.env[envVar] === "undefined" || process.env[envVar]!.length === 0) {
-	// 		if (defaultValue && defaultValue !== Constants.OPTIONAL_VALUE) {
-	// 			console.warn("Invalid configuration - switching to default", {
-	// 				missing: envVar,
-	// 				defaultValue,
-	// 			});
-	// 			return false;
-	// 		} else if (defaultValue === Constants.OPTIONAL_VALUE) {
-	// 			console.debug(`Optional ${ envVar } is not set up.`);
-	// 			return false;
-	// 		}
-	// 		console.error("Invalid configuration",  {  missing: envVar });
-	// 		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid configuration");
-	// 	}
-	// 	return true;
-	// }
+	static getFrontEndDomain(): any {
+		if (!this.FRONT_END_CUSTOM_DOMAIN	|| this.FRONT_END_CUSTOM_DOMAIN.trim().length === 0) {
+			this.FRONT_END_CUSTOM_DOMAIN = "localhost";
+			console.warn("FRONT_END_CUSTOM_DOMAIN env var is not set. Setting to default - localhost.");
+		}
+		return this.FRONT_END_CUSTOM_DOMAIN;
+	}
+
+	static getPort(): any {
+		if (!this.PORT	|| this.PORT.trim().length === 0) {
+			this.PORT = "8080";
+			loggingHelper.warn("PORT env var is not set. Setting to default - 8080.");
+		}
+		return this.PORT;
+	}
+
+	static getApiBaseUrl(): any {
+		if (!this.API_BASE_URL || this.API_BASE_URL.trim().length === 0) {
+			loggingHelper.error(`Misconfigured Api Base url ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.API_BASE_URL;
+	}
+
+	static getAccountsDashboardUrl(): any {
+		if (!this.ACCOUNTS_DASHBOARD	|| this.ACCOUNTS_DASHBOARD.trim().length === 0) {
+			loggingHelper.error(`Misconfigured Accounts dashboard url ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.ACCOUNTS_DASHBOARD;
+	}
+
+
 
 }

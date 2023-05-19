@@ -1,4 +1,4 @@
-import {EnvironmentVariables} from "../utils/environmentVariables";
+import {EnvironmentVariables} from "../utils/EnvironmentVariables";
 
 export class Session {
 

@@ -68,41 +68,45 @@ Mappings:
     ### These environment variables are referenced further down the file.
     ### Please ensure that any variables defined for an environment are defined for _all_ environments.
     dev:
-#      APIBASEURL: "https://api-IPR-cri-api.review-o.dev.account.gov.uk"
+      APIBASEURL: "https://api-backend-main-richa-1.return.dev.account.gov.uk"
       DNSSUFFIX: "return.dev.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-dev"
       CLIENTID: "ppcQQGGNxghc-QJiqhRyGIJ5Its"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
     build:
-#      APIBASEURL: "https://api.review-o.build.account.gov.uk"
+      APIBASEURL: "https://api.return.build.account.gov.uk"
       DNSSUFFIX: "return.build.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-build"
       CLIENTID: "v152k0nWrZlHF2h4be0PVMLkUfY"
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
     staging:
-#      APIBASEURL: "https://api.review-o.staging.account.gov.uk"
+      APIBASEURL: "https://api.return.staging.account.gov.uk"
       DNSSUFFIX: "return-o.staging.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-staging"
       CLIENTID: "EGGcyKOjEONo3g2iXSxeec51nCY"
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
     integration:
-#      APIBASEURL: "https://api.review-o.integration.account.gov.uk"
+      APIBASEURL: "https://api.return.integration.account.gov.uk"
       DNSSUFFIX: "return-o.integration.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-integration"
       CLIENTID: "xdQACfjKkzJW0BWhGGJ4KGbdqwk"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
-
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
     production:
-#      APIBASEURL: "https://api.review-o.account.gov.uk"
+      APIBASEURL: "https://api.return.account.gov.uk"
       DNSSUFFIX: "return-o.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-production"
       #CLIENTID: "xdQACfjKkzJW0BWhGGJ4KGbdqwk"
       REDIRECTURL: "https://return.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.account.gov.uk"
 
 Resources:
   # Security Groups for the ECS service and load balancer
@@ -326,11 +330,11 @@ Resources:
       ContainerDefinitions:
         - Essential: true
           #Image: CONTAINER-IMAGE-PLACEHOLDER
-          Image: "489145412748.dkr.ecr.eu-west-2.amazonaws.com/ipvreturn-front-ecr-containerrepository-mlm5ik45rz1g:rimisra4"
+          Image: "489145412748.dkr.ecr.eu-west-2.amazonaws.com/ipvreturn-front-ecr-containerrepository-mlm5ik45rz1g:rimisra11"
           Name: app
           Environment:
-#            - Name: API_BASE_URL
-#              Value: !FindInMap [EnvironmentVariables, !Ref Environment, APIBASEURL ]
+            - Name: API_BASE_URL
+              Value: !FindInMap [EnvironmentVariables, !Ref Environment, APIBASEURL ]
             - Name: FRONT_END_CUSTOM_DOMAIN
               Value: !Ref IPRFrontCustomDomain
             - Name: SESSION_TABLE_NAME
@@ -341,6 +345,8 @@ Resources:
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTID ]
             - Name: DISCOVERY_ENDPOINT
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, DISCOVERYENDPOINT ]
+            - Name: ACCOUNTS_DASHBOARD
+              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
 
           PortMappings:
             - ContainerPort: 8080
