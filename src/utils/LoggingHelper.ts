@@ -6,9 +6,14 @@ export const loggingHelper = createLogger({
             format: format.combine(
                 format.colorize(),
                 format.printf(({ timestamp, level, message, metadata }) => {
-                    return `[${timestamp}] ${level}: ${message}. ${JSON.stringify(
-                        metadata
-                    )}`;
+                    if(JSON.stringify(metadata) !== "{}"){
+                        return `[${timestamp}] ${level}: ${message}. ${JSON.stringify(
+                            metadata
+                        )}`;
+                    }else{
+                        return `[${timestamp}] ${level}: ${message}`;
+                    }
+
                 })
             ),
         })
