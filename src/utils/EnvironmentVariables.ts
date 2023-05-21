@@ -1,7 +1,7 @@
 import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { Constants } from "./Constants";
-import {loggingHelper} from "./LoggingHelper";
+import { loggingHelper } from "./LoggingHelper";
 
 /**
  * Class to read, store, and return environment variables
@@ -102,7 +102,6 @@ export class EnvironmentVariables {
 		}
 		return this.ACCOUNTS_DASHBOARD;
 	}
-
 
 
 }

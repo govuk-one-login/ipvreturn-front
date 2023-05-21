@@ -1,12 +1,13 @@
-import {EnvironmentVariables} from "../utils/EnvironmentVariables";
+import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 
 export class Session {
 
-    constructor(state:string ) {
-        this.state =state;
-        this.expiryDate = Math.floor(Date.now() / 1000) + EnvironmentVariables.getSessionTtl();
-    }
+	constructor(state:string ) {
+		this.state = state;
+		this.expiryDate = Math.floor(Date.now() / 1000) + EnvironmentVariables.getSessionTtl();
+	}
 
-    state: string
-    expiryDate: number
+    state: string;
+
+    expiryDate: number;
 }

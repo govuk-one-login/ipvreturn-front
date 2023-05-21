@@ -51,6 +51,13 @@ const CODE_COMPLEXITY_RULES = {
 }
 
 const CODE_STYLING_RULES = {
+
+  "@typescript-eslint/no-misused-promises": [
+    "error",
+    {
+      "checksVoidReturn": false
+    }
+  ],
   'no-useless-escape': [
     'warn'
   ],
