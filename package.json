@@ -7,7 +7,7 @@
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
     "build": "./node_modules/.bin/tsc",
     "start": "NODE_ENV=production node build/src/Index.js",
-    "test:unit": "npm run build && npm run unit",
+    "test": "npm run build && npm run unit",
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts ."
   },
