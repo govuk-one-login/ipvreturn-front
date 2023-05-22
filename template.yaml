@@ -324,8 +324,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Essential: true
-          #Image: CONTAINER-IMAGE-PLACEHOLDER
-          Image: "489145412748.dkr.ecr.eu-west-2.amazonaws.com/ipvreturn-front-ecr-containerrepository-mlm5ik45rz1g:rimisra18"
+          Image: CONTAINER-IMAGE-PLACEHOLDER
           Name: app
           Environment:
             - Name: API_BASE_URL

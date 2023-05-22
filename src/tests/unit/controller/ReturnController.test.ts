@@ -3,7 +3,7 @@ import { mock } from "jest-mock-extended";
 import { ReturnService } from "../../../services/ReturnService";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
-import {loggingHelper} from "../../../utils/LoggingHelper"
+import { loggingHelper } from "../../../utils/LoggingHelper";
 
 let returnCtrl: ReturnController;
 
@@ -15,7 +15,7 @@ let redirectToDashboardSpy: any;
 const mockResponse: any = {
 	json: jest.fn(),
 	status: jest.fn(),
-	redirect: jest.fn()
+	redirect: jest.fn(),
 };
 
 
@@ -23,7 +23,7 @@ describe("returnController test", () => {
 
 	beforeAll(() => {
 		returnCtrl = new ReturnController(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
-		redirectToDashboardSpy = jest.spyOn(returnCtrl, 'redirectToDashboard');
+		redirectToDashboardSpy = jest.spyOn(returnCtrl, "redirectToDashboard");
 		mockedreturnService.createSession.mockResolvedValue("123456");
 		mockedreturnService.getParameter.mockResolvedValue("mockClientId");
 		// @ts-ignore
@@ -41,7 +41,7 @@ describe("returnController test", () => {
 	it("handle Redirect when query params are missing", async () => {
 
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
-		expect(redirectToDashboardSpy).nthCalledWith(1,mockResponse, "Missing query parameters in request")
+		expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(1, mockResponse, "Missing query parameters in request");
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
 		expect(mockResponse.redirect).toHaveBeenCalledWith("https://home.staging.account.gov.uk/");
 	});
@@ -51,11 +51,11 @@ describe("returnController test", () => {
 		const mockRequest = {
 			query:{
 				"error":"invalid_request",
-				"error_description":"Unsupported%20response"
-			}
+				"error_description":"Unsupported%20response",
+			},
 		};
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
-		expect(redirectToDashboardSpy).nthCalledWith(1,mockResponse, "Received error response from /authorize")
+		expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(1, mockResponse, "Received error response from /authorize");
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(2);
 		expect(mockResponse.redirect).toHaveBeenCalledWith("https://home.staging.account.gov.uk/");
 	});
