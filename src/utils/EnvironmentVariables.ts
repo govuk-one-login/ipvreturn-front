@@ -16,9 +16,9 @@ export class EnvironmentVariables {
 
 	private static readonly CLIENT_ID_SSM_PATH = process.env.CLIENT_ID_SSM_PATH;
 
-	private static SESSION_TTL = process.env.SESSION_TTL!;
+	private static SESSION_TTL = +process.env.SESSION_TTL!;
 
-	private static PORT = process.env.PORT!;
+	private static PORT = +process.env.PORT!;
 
 	private static FRONT_END_CUSTOM_DOMAIN = process.env.FRONT_END_CUSTOM_DOMAIN;
 
@@ -32,7 +32,7 @@ export class EnvironmentVariables {
 
 	static getRedirectUrl(): any {
 		if (!this.REDIRECT_URL || this.REDIRECT_URL.trim().length === 0) {
-			console.error(`Misconfigured RedirectUrl ${EnvironmentVariables.name}`);
+			loggingHelper.error(`Misconfigured RedirectUrl ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.REDIRECT_URL;
@@ -40,7 +40,7 @@ export class EnvironmentVariables {
 
 	static getClientIdSsmPath(): any {
 		if (!this.CLIENT_ID_SSM_PATH || this.CLIENT_ID_SSM_PATH.trim().length === 0) {
-			console.error(`Misconfigured ClientId SSM Path ${EnvironmentVariables.name}`);
+			loggingHelper.error(`Misconfigured ClientId SSM Path ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.CLIENT_ID_SSM_PATH;
@@ -48,7 +48,7 @@ export class EnvironmentVariables {
 
 	static getDiscoveryEndpoint(): any {
 		if (!this.DISCOVERY_ENDPOINT || this.DISCOVERY_ENDPOINT.trim().length === 0) {
-			console.error(`Misconfigured Discovery endpoint ${EnvironmentVariables.name}`);
+			loggingHelper.error(`Misconfigured Discovery endpoint ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.DISCOVERY_ENDPOINT;
@@ -57,16 +57,16 @@ export class EnvironmentVariables {
 
 	static getSessionTableName(): any {
 		if (!this.SESSION_TABLE_NAME || this.SESSION_TABLE_NAME.trim().length === 0) {
-			console.error(`Misconfigured Session table name ${EnvironmentVariables.name}`);
+			loggingHelper.error(`Misconfigured Session table name ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.SESSION_TABLE_NAME;
 	}
 
 	static getSessionTtl(): any {
-		if (!this.SESSION_TTL	|| this.SESSION_TTL.trim().length === 0) {
-			this.SESSION_TTL = "300";
-			console.warn("SESSION_TTL env var is not set. Setting to default - 5 mins.");
+		if (!this.SESSION_TTL) {
+			this.SESSION_TTL = 300;
+			loggingHelper.warn("SESSION_TTL env var is not set. Setting to default - 5 mins.");
 		}
 		return this.SESSION_TTL;
 	}
@@ -74,14 +74,14 @@ export class EnvironmentVariables {
 	static getFrontEndDomain(): any {
 		if (!this.FRONT_END_CUSTOM_DOMAIN	|| this.FRONT_END_CUSTOM_DOMAIN.trim().length === 0) {
 			this.FRONT_END_CUSTOM_DOMAIN = "localhost";
-			console.warn("FRONT_END_CUSTOM_DOMAIN env var is not set. Setting to default - localhost.");
+			loggingHelper.warn("FRONT_END_CUSTOM_DOMAIN env var is not set. Setting to default - localhost.");
 		}
 		return this.FRONT_END_CUSTOM_DOMAIN;
 	}
 
 	static getPort(): any {
-		if (!this.PORT	|| this.PORT.trim().length === 0) {
-			this.PORT = "8080";
+		if (!this.PORT) {
+			this.PORT = 8080;
 			loggingHelper.warn("PORT env var is not set. Setting to default - 8080.");
 		}
 		return this.PORT;

@@ -10,4 +10,5 @@ export class Session {
     state: string;
 
     expiryDate: number;
+
 }

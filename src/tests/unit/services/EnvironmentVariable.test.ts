@@ -12,7 +12,7 @@ describe("EnvironmentVariables", () => {
 	it("should return the value of PORT", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
 		const value = EnvironmentVariables.getPort();
-		expect(value).toBe("8080");
+		expect(value).toBe(8080);
 	});
 
 	it("should throw an error if API_BASE_URL is not provided", () => {
@@ -47,7 +47,7 @@ describe("EnvironmentVariables", () => {
 	it("should return the value of SESSION_TTL", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
 		const value = EnvironmentVariables.getSessionTtl();
-		expect(value).toBe("300");
+		expect(value).toBe(300);
 	});
 
 	it("should throw an error if DISCOVERY_ENDPOINT is not provided", () => {
