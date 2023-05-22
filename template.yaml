@@ -71,7 +71,6 @@ Mappings:
       APIBASEURL: "https://api-backend-main-richa-1.return.dev.account.gov.uk"
       DNSSUFFIX: "return.dev.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-dev"
-      CLIENTID: "ppcQQGGNxghc-QJiqhRyGIJ5Its"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
@@ -80,8 +79,6 @@ Mappings:
       APIBASEURL: "https://api.return.build.account.gov.uk"
       DNSSUFFIX: "return.build.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-build"
-      #pragma: allowlist secret      
-      CLIENTID: "v152k0nWrZlHF2h4be0PVMLkUfY"
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
@@ -89,8 +86,6 @@ Mappings:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
       DNSSUFFIX: "return-o.staging.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-staging"
-      #pragma: allowlist secret      
-      CLIENTID: "EGGcyKOjEONo3g2iXSxeec51nCY"
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
@@ -98,8 +93,6 @@ Mappings:
       APIBASEURL: "https://api.return.integration.account.gov.uk"
       DNSSUFFIX: "return-o.integration.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-integration"
-      #pragma: allowlist secret      
-      CLIENTID: "xdQACfjKkzJW0BWhGGJ4KGbdqwk"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
 
@@ -107,8 +100,6 @@ Mappings:
       APIBASEURL: "https://api.return.account.gov.uk"
       DNSSUFFIX: "return-o.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-production"
-      #pragma: allowlist secret      
-      #CLIENTID: "xdQACfjKkzJW0BWhGGJ4KGbdqwk"
       REDIRECTURL: "https://return.account.gov.uk/callback"
       ACCOUNTSDASHBOARD: "https://home.account.gov.uk"
 
@@ -351,6 +342,8 @@ Resources:
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, DISCOVERYENDPOINT ]
             - Name: ACCOUNTS_DASHBOARD
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
+            - Name: CLIENT_ID_SSM_PATH
+              Value: !Sub "/${Environment}/ipvreturn/CLIENT_ID"
 
           PortMappings:
             - ContainerPort: 8080
@@ -572,14 +565,6 @@ Resources:
     Properties:
       DomainName: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
 
-#        !If
-#        - IsNotDevelopment
-#        - !Sub
-#          - "www.${DNSSUFFIX}"
-#          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-#        - !Sub
-#          - "${AWS::StackName}.${DNSSUFFIX}"
-#          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
@@ -589,15 +574,6 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       Name: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-
-#      !If
-#        - IsNotDevelopment
-#        - !Sub
-#          - "www.${DNSSUFFIX}"
-#          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-#        - !Sub
-#          - "${AWS::StackName}.${DNSSUFFIX}"
-#          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       Type: A
       HostedZoneId: !ImportValue PublicHostedZoneId
       AliasTarget:

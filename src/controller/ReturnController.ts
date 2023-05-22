@@ -9,6 +9,7 @@ import axios from "axios";
 export class ReturnController {
 
     private static instance: ReturnController;
+	private static clientId: string;
 
     private readonly iprService: ReturnService;
 
@@ -32,8 +33,18 @@ export class ReturnController {
     	loggingHelper.info("RedirectUri", { redirectUri });
     	const nonce = randomUUID();
     	const discoveryEndpoint = EnvironmentVariables.getDiscoveryEndpoint();
-    	const clientId = EnvironmentVariables.getClientId();
-    	const authorizeUrl = `${discoveryEndpoint}/authorize?response_type=code&scope=openid&client_id=${clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
+
+		if (!ReturnController.clientId) {
+			loggingHelper.info("Fetching CLIENT_ID from SSM" );
+			//try {
+				ReturnController.clientId = await this.iprService.getParameter(EnvironmentVariables.getClientIdSsmPath());
+			// } catch (err) {
+			// 	logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, { err });
+			// 	throw err;
+			// }
+		}
+    	//const clientId = EnvironmentVariables.getClientId();
+    	const authorizeUrl = `${discoveryEndpoint}/authorize?response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
     	loggingHelper.info("Authorize url", { authorizeUrl });
     	return authorizeUrl;
     }

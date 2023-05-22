@@ -25,6 +25,7 @@ describe("returnController test", () => {
 		returnCtrl = new ReturnController(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
 		redirectToDashboardSpy = jest.spyOn(returnCtrl, 'redirectToDashboard');
 		mockedreturnService.createSession.mockResolvedValue("123456");
+		mockedreturnService.getParameter.mockResolvedValue("mockClientId");
 		// @ts-ignore
 		returnCtrl.iprService = mockedreturnService;
 
@@ -34,7 +35,7 @@ describe("returnController test", () => {
 
 		const actualResult = await returnCtrl.handleResumeReturnAuthUrl();
 		const nonce = (actualResult ).split("nonce=", actualResult.length);
-		expect(actualResult).toBe(`https://discovery/authorize?response_type=code&scope=openid&client_id=clientid&state=123456&redirect_uri=https%3A%2F%2Fredirect&nonce=${nonce[1]}`);
+		expect(actualResult).toBe(`https://discovery/authorize?response_type=code&scope=openid&client_id=mockClientId&state=123456&redirect_uri=https%3A%2F%2Fredirect&nonce=${nonce[1]}`);
 	});
 
 	it("handle Redirect when query params are missing", async () => {

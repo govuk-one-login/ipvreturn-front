@@ -14,7 +14,7 @@ export class EnvironmentVariables {
 
 	private static readonly SESSION_TABLE_NAME = process.env.SESSION_TABLE_NAME;
 
-	private static readonly CLIENT_ID = process.env.CLIENT_ID;
+	private static readonly CLIENT_ID_SSM_PATH = process.env.CLIENT_ID_SSM_PATH;
 
 	private static SESSION_TTL = process.env.SESSION_TTL!;
 
@@ -38,12 +38,12 @@ export class EnvironmentVariables {
 		return this.REDIRECT_URL;
 	}
 
-	static getClientId(): any {
-		if (!this.CLIENT_ID || this.CLIENT_ID.trim().length === 0) {
-			console.error(`Misconfigured ClientId ${EnvironmentVariables.name}`);
+	static getClientIdSsmPath(): any {
+		if (!this.CLIENT_ID_SSM_PATH || this.CLIENT_ID_SSM_PATH.trim().length === 0) {
+			console.error(`Misconfigured ClientId SSM Path ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
-		return this.CLIENT_ID;
+		return this.CLIENT_ID_SSM_PATH;
 	}
 
 	static getDiscoveryEndpoint(): any {

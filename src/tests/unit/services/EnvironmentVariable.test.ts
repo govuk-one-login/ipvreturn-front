@@ -72,15 +72,15 @@ describe("EnvironmentVariables", () => {
 		);
 	});
 
-	it("should throw an error if CLIENT_ID is not provided", () => {
+	it("should throw an error if CLIENT_ID_SSM_PATH is not provided", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
 
-		expect(() => EnvironmentVariables.getClientId()).toThrow(
+		expect(() => EnvironmentVariables.getClientIdSsmPath().toThrow(
 			expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "ENV Variables are undefined"
 			}),
-		);
+		));
 	});
 
 	it("should throw an error if REDIRECT_URL is not provided", () => {
