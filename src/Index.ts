@@ -5,7 +5,6 @@ import * as Routes from "./Routes";
 
 const index = express();
 
-//app.use(Routes);
 Routes.register(index);
 
 index.listen(EnvironmentVariables.getPort(), () => {
