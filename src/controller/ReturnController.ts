@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 
 export class ReturnController {
 
@@ -64,9 +64,17 @@ export class ReturnController {
     			}
 
     			try {
-    				const resp = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`);
-    				loggingHelper.info("Redirecting to ", { "redirectUri":resp.data?.redirect_uri });
-    				res.redirect(resp.data?.redirect_uri);
+    				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`);
+    				loggingHelper.info("Received response",{"response":resp?.data, "statusCode":resp?.status});
+
+					if(resp.data && resp.status === 200 &&
+						resp.data.redirect_uri && resp.data.status === "completed"){
+						loggingHelper.info("Redirecting to ", { "redirectUri":resp.data?.redirect_uri });
+						res.redirect(resp.data.redirect_uri);
+					}else{
+						this.redirectToDashboard(res, "Received no data, missing mandatory params in response or statusCode other than 200" );
+					}
+
     			} catch (e) {
     				this.redirectToDashboard(res, "Received error calling /session and redirecting to RP", e );
     			}

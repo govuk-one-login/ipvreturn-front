@@ -335,8 +335,6 @@ Resources:
               Value: !Ref IPRFrontSessionsTable
             - Name: REDIRECT_URL
               Value: !FindInMap [EnvironmentVariables, !Ref Environment, REDIRECTURL ]
-            - Name: CLIENT_ID
-              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTID ]
             - Name: DISCOVERY_ENDPOINT
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, DISCOVERYENDPOINT ]
             - Name: ACCOUNTS_DASHBOARD
@@ -415,6 +413,19 @@ Resources:
               Service: ecs-tasks.amazonaws.com
         Version: 2012-10-17
       Policies:
+        - PolicyName: IPRSSMReadAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:DescribeParameters"
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"
+                  - "ssm:GetParametersByPath"
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/ipvreturn/CLIENT_ID"
+
         - PolicyName: IPRFrontDynamoDBSessionAccess
           PolicyDocument:
             Version: "2012-10-17"
@@ -590,6 +601,8 @@ Resources:
   IPRFrontSessionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
       TableName: !If
         - IsNotDevelopment
