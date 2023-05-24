@@ -68,8 +68,8 @@ describe("returnController test", () => {
 
 		const mockRequest = {
 			query:{
-				"state":"471600cc-1af0-4254-8fbd-2b284b49c12c",
-				"code":"q9t6SBUyUBZERuC3daBM6u3PKGeDspDgQoS8PC0H2o4",
+				"state":"471600",
+				"code":"abcd123",
 			},
 		};
 		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"dummy RP url" } });
@@ -82,8 +82,8 @@ describe("returnController test", () => {
 
 		const mockRequest = {
 			query:{
-				"state":"471600cc-1af0-4254-8fbd-2b284b49c12c",
-				"code":"q9t6SBUyUBZERuC3daBM6u3PKGeDspDgQoS8PC0H2o4",
+				"state":"471600",
+				"code":"abcd123",
 			},
 		};
 		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"pending" } });
