@@ -16,7 +16,7 @@ export class EnvironmentVariables {
 
 	private static readonly CLIENT_ID_SSM_PATH = process.env.CLIENT_ID_SSM_PATH;
 
-	private static SESSION_TTL = +process.env.SESSION_TTL!;
+	private static SESSION_TTL_IN_SECS = +process.env.SESSION_TTL_IN_SECS!;
 
 	private static PORT = +process.env.PORT!;
 
@@ -63,12 +63,12 @@ export class EnvironmentVariables {
 		return this.SESSION_TABLE_NAME;
 	}
 
-	static getSessionTtl(): any {
-		if (!this.SESSION_TTL) {
-			this.SESSION_TTL = 300;
-			loggingHelper.warn("SESSION_TTL env var is not set. Setting to default - 5 mins.");
+	static getSessionTtlInSecs(): any {
+		if (!this.SESSION_TTL_IN_SECS) {
+			this.SESSION_TTL_IN_SECS = 300;
+			loggingHelper.warn("SESSION_TTL_IN_SECS env var is not set. Setting to default - 5 mins.");
 		}
-		return this.SESSION_TTL;
+		return this.SESSION_TTL_IN_SECS;
 	}
 
 	static getFrontEndDomain(): any {

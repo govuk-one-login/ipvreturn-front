@@ -44,9 +44,9 @@ describe("EnvironmentVariables", () => {
 		);
 	});
 
-	it("should return the value of SESSION_TTL", () => {
+	it("should return the value of SESSION_TTL_IN_SECS", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
-		const value = EnvironmentVariables.getSessionTtl();
+		const value = EnvironmentVariables.getSessionTtlInSecs();
 		expect(value).toBe(300);
 	});
 

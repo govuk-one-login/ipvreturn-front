@@ -8,6 +8,8 @@ export const register = ( router: express.Application ) => {
 		try {
 			loggingHelper.info("Processing /resume");
 			const authorizeUrl = await ReturnController.getInstance().handleResumeReturnAuthUrl();
+			loggingHelper.info("Successfully processed /resume");
+
 			res.redirect(authorizeUrl);
 		} catch (e) {
 			loggingHelper.error("Received unexpected error handling /resume", { "error": e });

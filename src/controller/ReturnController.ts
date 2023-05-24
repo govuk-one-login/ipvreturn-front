@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
-import axios, {AxiosResponse} from "axios";
+import axios, { AxiosResponse } from "axios";
 
 export class ReturnController {
 
@@ -47,6 +47,7 @@ export class ReturnController {
     async handleRedirect(req: any, res: any): Promise<any> {
 
     	if (req.query) {
+    		loggingHelper.info("Query params received", { "queryParams":req.query });
     		if (req.query.error) {
     			loggingHelper.error("Received error response from /authorize", {
     				"error": req.query.error,
@@ -57,7 +58,6 @@ export class ReturnController {
     		if (req.query.state && req.query.code) {
     			try {
     				loggingHelper.info("Received success response", { "code": req.query.code, "state": req.query.state });
-    				//await ReturnController.getInstance().handleRedirect(req.query.state as string)
     				await this.iprService.deleteSession(req.query.state);
     			} catch {
     				this.redirectToDashboard(res, "Got error deleting record from DB");
@@ -65,15 +65,15 @@ export class ReturnController {
 
     			try {
     				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`);
-    				loggingHelper.info("Received response",{"response":resp?.data, "statusCode":resp?.status});
+    				loggingHelper.info("Received response", { "response":resp?.data, "statusCode":resp?.status });
 
-					if(resp.data && resp.status === 200 &&
-						resp.data.redirect_uri && resp.data.status === "completed"){
-						loggingHelper.info("Redirecting to ", { "redirectUri":resp.data?.redirect_uri });
-						res.redirect(resp.data.redirect_uri);
-					}else{
-						this.redirectToDashboard(res, "Received no data, missing mandatory params in response or statusCode other than 200" );
-					}
+    				if (resp.data && resp.status === 200 &&
+						resp.data.redirect_uri && resp.data.status === "completed") {
+    					loggingHelper.info("Redirecting to RelyingParty", { "redirectUri":resp.data?.redirect_uri });
+    					res.redirect(resp.data.redirect_uri);
+    				} else {
+    					this.redirectToDashboard(res, "Received no data, missing mandatory params in response or statusCode other than 200" );
+    				}
 
     			} catch (e) {
     				this.redirectToDashboard(res, "Received error calling /session and redirecting to RP", e );
