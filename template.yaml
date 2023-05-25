@@ -1,0 +1,648 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: >-
+  This creates the necessary components to deploy the IPV Return (IPR) FE onto ECS
+  Fargate within an existing VPC and private subnets (imported parameters).
+  IPV Return Front can be invoked via the public API Gateway on the url in the
+  IPRFrontURL output.
+  The ingress route in summary is: API Gateway -> VPC link -> Private ALB ->
+  IPR Front ECS Service
+  IPR Front egress to IPR API's API Gateway is via a NAT Gateway which
+  should have a route in the provided private subnets' route table.
+Parameters:
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    Default: dev
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+  VpcStackName:
+    Description: >
+      The name of the stack that defines the VPC in which this container will
+      run.
+    Type: String
+  PermissionsBoundary:
+    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
+    Type: String
+    Default: "none"
+
+Conditions:
+  IsNotDevelopment: !Or
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+    - !Equals [ !Ref Environment, production ]
+  IsProduction: !Equals [ !Ref Environment, production ]
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+
+Mappings:
+  PlatformConfiguration:
+    dev:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    build:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    staging:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    integration:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    production:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+
+#   # see https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html
+  ElasticLoadBalancerAccountIds:
+    eu-west-2:
+      AccountId: 652711504416
+
+
+  EnvironmentVariables:
+    ### These environment variables are referenced further down the file.
+    ### Please ensure that any variables defined for an environment are defined for _all_ environments.
+    dev:
+      APIBASEURL: "https://api-backend-main-richa-1.return.dev.account.gov.uk"
+      DNSSUFFIX: "return.dev.account.gov.uk"
+      SESSIONTABLENAME: "IPR-front-sessions-dev"
+      REDIRECTURL: "https://return.dev.account.gov.uk/callback"
+      DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+
+    build:
+      APIBASEURL: "https://api.return.build.account.gov.uk"
+      DNSSUFFIX: "return.build.account.gov.uk"
+      SESSIONTABLENAME: "IPR-front-sessions-build"
+      REDIRECTURL: "https://return.build.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+
+    staging:
+      APIBASEURL: "https://api.return.staging.account.gov.uk"
+      DNSSUFFIX: "return-o.staging.account.gov.uk"
+      SESSIONTABLENAME: "IPR-front-sessions-staging"
+      REDIRECTURL: "https://return.staging.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+
+    integration:
+      APIBASEURL: "https://api.return.integration.account.gov.uk"
+      DNSSUFFIX: "return-o.integration.account.gov.uk"
+      SESSIONTABLENAME: "IPR-front-sessions-integration"
+      REDIRECTURL: "https://return.dev.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+
+    production:
+      APIBASEURL: "https://api.return.account.gov.uk"
+      DNSSUFFIX: "return-o.account.gov.uk"
+      SESSIONTABLENAME: "IPR-front-sessions-production"
+      REDIRECTURL: "https://return.account.gov.uk/callback"
+      ACCOUNTSDASHBOARD: "https://home.account.gov.uk"
+
+Resources:
+  # Security Groups for the ECS service and load balancer
+  LoadBalancerSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: >-
+        IPR Front LoadBalancer Security Group
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 80
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
+
+  LoadBalancerSGEgressToECSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      GroupId: !GetAtt LoadBalancerSG.GroupId
+      IpProtocol: tcp
+      Description: >-
+        Egress between the IPR Front load balancer and
+        the IPR Front ECS security group
+      DestinationSecurityGroupId: !GetAtt ECSSecurityGroup.GroupId
+      FromPort: 8080
+      ToPort: 8080
+
+  ECSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: >-
+        IPR Front ECS Security Group permitting outbound
+        to anywhere.
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: '-1'
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
+
+  ECSSecurityGroupIngressFromLoadBalancer:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      IpProtocol: tcp
+      Description: >-
+        IPR Front ECS permits inbound from the IPR Front
+        load balancer.
+      FromPort: 8080
+      ToPort: 8080
+      GroupId: !GetAtt ECSSecurityGroup.GroupId
+      SourceSecurityGroupId: !GetAtt LoadBalancerSG.GroupId
+
+  AccessLogsBucket:
+    Condition: IsNotDevelopment
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub IPR-front-${Environment}-access-logs
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  IPRFrontAccessLogsBucketPolicy:
+    Condition: IsNotDevelopment
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AccessLogsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub
+                - "arn:aws:iam::${ElbAccountId}:root"
+                - ElbAccountId: !FindInMap [ ElasticLoadBalancerAccountIds, !Ref AWS::Region, AccountId ]
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Sub arn:aws:s3:::${AccessLogsBucket}/IPR-front-${Environment}/AWSLogs/${AWS::AccountId}/*
+
+  # Private Application Load Balancer
+  LoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Scheme: internal
+      SecurityGroups:
+        - !GetAtt LoadBalancerSG.GroupId
+      Subnets:
+        - Fn::ImportValue:
+            !Sub "${VpcStackName}-PrivateSubnetIdA"
+        - Fn::ImportValue:
+            !Sub "${VpcStackName}-PrivateSubnetIdB"
+      Type: application
+      LoadBalancerAttributes: !If
+        - IsNotDevelopment
+        - - Key: access_logs.s3.enabled
+            Value: true
+          - Key: access_logs.s3.bucket
+            Value: !Ref AccessLogsBucket
+          - Key: access_logs.s3.prefix
+            Value: !Sub IPR-front-${Environment}
+        - !Ref AWS::NoValue
+
+  LoadBalancerListenerTargetGroupECS:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      HealthCheckEnabled: TRUE
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200-499
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60
+
+  LoadBalancerListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
+          Type: forward
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # ECS cluster, service
+  IPRFrontEcsCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-ECSCluster"
+        - Key: Product
+          Value: "GOV.UK sign in"
+        - Key: System
+          Value: "IPR"
+        - Key: Environment
+          Value: !Sub "${Environment}"
+
+  IPRFrontEcsService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref IPRFrontEcsCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+        DeploymentCircuitBreaker:
+          Enable: TRUE
+          Rollback: TRUE
+      DesiredCount: 2
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: app
+          ContainerPort: 8080
+          TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !GetAtt ECSSecurityGroup.GroupId
+          Subnets:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdB"
+      TaskDefinition: !Ref ECSServiceTaskDefinition
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-ECS"
+        - Key: Product
+          Value: "GOV.UK sign in"
+        - Key: System
+          Value: "IPR"
+        - Key: Environment
+          Value: !Sub "${Environment}"
+    DependsOn:
+      - LoadBalancerListener
+
+  ECSAccessLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/ecs/${AWS::StackName}-IPRFront-ECS
+      RetentionInDays: 14
+
+  CSLSECSAccessSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    # Condition: IsNotDevelopment
+    Properties:
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      FilterPattern: ""
+      LogGroupName: !Ref ECSAccessLogsGroup
+
+
+  # Fargate tasks
+
+  ECSServiceTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        - Essential: true
+          Image: CONTAINER-IMAGE-PLACEHOLDER
+          Name: app
+          Environment:
+            - Name: API_BASE_URL
+              Value: !FindInMap [EnvironmentVariables, !Ref Environment, APIBASEURL ]
+            - Name: FRONT_END_CUSTOM_DOMAIN
+              Value: !Ref IPRFrontCustomDomain
+            - Name: SESSION_TABLE_NAME
+              Value: !Ref IPRFrontSessionsTable
+            - Name: REDIRECT_URL
+              Value: !FindInMap [EnvironmentVariables, !Ref Environment, REDIRECTURL ]
+            - Name: DISCOVERY_ENDPOINT
+              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, DISCOVERYENDPOINT ]
+            - Name: ACCOUNTS_DASHBOARD
+              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
+            - Name: CLIENT_ID_SSM_PATH
+              Value: !Sub "/${Environment}/ipvreturn/CLIENT_ID"
+
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group : !Ref ECSAccessLogsGroup
+              awslogs-region : !Sub ${AWS::Region}
+              awslogs-stream-prefix : !Sub IPR-front-${Environment}
+      Cpu: '256'
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      Memory: '512'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-TaskDefinition"
+        - Key: Product
+          Value: "GOV.UK sign in"
+        - Key: System
+          Value: "IPR"
+        - Key: Environment
+          Value: !Sub "${Environment}"
+
+  ECSTaskExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: PullIPRFrontImage
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecr:BatchGetImage"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:GetAuthorizationToken"
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !GetAtt "ECSAccessLogsGroup.Arn"
+                  - !Sub "${ECSAccessLogsGroup.Arn}:*"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  ECSTaskRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: IPRSSMReadAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:DescribeParameters"
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"
+                  - "ssm:GetParametersByPath"
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/ipvreturn/CLIENT_ID"
+
+        - PolicyName: IPRFrontDynamoDBSessionAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:BatchWriteItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:PutItem"
+                Resource:
+                  - !GetAtt IPRFrontSessionsTable.Arn
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  #
+  # API Gateway
+  #
+  #
+
+  ApiGwHttpEndpoint:
+    Type: 'AWS::ApiGatewayV2::Api'
+    Properties:
+      Name: !Sub "IPR-front-${Environment} ${AWS::StackName}"
+      Description: !Sub "IPR-front-${Environment} ${AWS::StackName} Server-side rendered Frontend"
+      ProtocolType: HTTP
+
+  ApiGwHttpEndpointIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties:
+      ApiId: !Ref ApiGwHttpEndpoint
+      IntegrationType: HTTP_PROXY
+      ConnectionId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcLinkId"
+      ConnectionType: VPC_LINK
+      IntegrationMethod: ANY
+      IntegrationUri: !Ref LoadBalancerListener
+      PayloadFormatVersion: '1.0'
+
+  APIGWRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref ApiGwHttpEndpoint
+      RouteKey: 'ANY /{proxy+}'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref ApiGwHttpEndpointIntegration
+
+  APIStageDefault:
+    Type: 'AWS::ApiGatewayV2::Stage'
+    Properties:
+      ApiId: !Ref ApiGwHttpEndpoint
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DataTraceEnabled: false
+        DetailedMetricsEnabled: true
+        ThrottlingBurstLimit: 400
+        ThrottlingRateLimit: 200
+      AccessLogSettings:
+        DestinationArn: !GetAtt APIGWAccessLogsGroup.Arn
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip": "$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path": "$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLength":"$context.responseLength"
+          }
+  # WAFv2ACLAssociation:
+  #   Type: AWS::WAFv2::WebACLAssociation
+  #   Properties:
+  #     ResourceArn: !Ref LoadBalancer
+  #     WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/WafArn}}"
+
+  APIGWAccessLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-IPRFront-API-GW-AccessLogs
+      RetentionInDays: 14
+
+  CSLSAPIGWAccessSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    # Condition: IsNotDevelopment
+    Properties:
+      DestinationArn:
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
+      FilterPattern: ""
+      LogGroupName: !Ref APIGWAccessLogsGroup
+
+
+  # Autoscaling
+  # The number of pods will increase when the configured CPU utilization is breached for more than 3 minutes.
+  # Scaling down will occur after 15 minutes of 90% utilization of the configured CPU utilization.
+
+  ECSAutoScalingTarget:
+    Condition: IsProduction
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 3
+      MinCapacity: 1
+      ResourceId: !Join
+        - '/'
+        - - "service"
+          - !Ref   IPRFrontEcsCluster
+          - !GetAtt IPRFrontEcsService.Name
+      RoleARN: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  ECSAutoScalingPolicy:
+    Condition: IsProduction
+    DependsOn: ECSAutoScalingTarget
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ECSAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ResourceId: !Join
+        - '/'
+        - - "service"
+          - !Ref   IPRFrontEcsCluster
+          - !GetAtt IPRFrontEcsService.Name
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 70.0
+
+### Front End API Gateway Custom Domain definition
+
+  IPRFrontCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  IPRFrontApiRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      Type: A
+      HostedZoneId: !ImportValue PublicHostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt IPRFrontCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt IPRFrontCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  IPRFrontApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Ref IPRFrontCustomDomain
+      ApiId: !Ref ApiGwHttpEndpoint
+      Stage: !Ref APIStageDefault
+
+  IPRFrontSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
+      TableName: !If
+        - IsNotDevelopment
+        - !Sub
+          - "${SESSIONTABLENAME}"
+          - SESSIONTABLENAME: !FindInMap [EnvironmentVariables, !Ref Environment, SESSIONTABLENAME]
+        - !Sub
+          - "${SESSIONTABLENAME}-${AWS::StackName}"
+          - SESSIONTABLENAME: !FindInMap [EnvironmentVariables, !Ref Environment, SESSIONTABLENAME]
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "state"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "state"
+          KeyType: "HASH"
+      TimeToLiveSpecification:
+        AttributeName: "expiryDate"
+        Enabled: true
+      SSESpecification:
+        # checkov:skip=CKV_AWS_119: Implement Customer Managed Keys in PYIC-1391
+        SSEEnabled: true
+        SSEType: KMS
+
+Outputs:
+  StackName:
+    Description: "CloudFormation stack name"
+    Value: !Sub "${AWS::StackName}"
+  IPRFrontUrl:
+    Description: >-
+      The API Gateway URL which IPR Front can be invoked on.
+    Value: !GetAtt  ApiGwHttpEndpoint.ApiEndpoint
+  IPRFrontGatewayId:
+    Description: IPR Front API Gateway ID
+    Export:
+      Name: !Sub "${AWS::StackName}-IPRFrontGatewayId"
+    Value: !Ref ApiGwHttpEndpoint
+  IPRFrontSessionsTableName:
+    Description: Table name for the FE sessions table
+    Value: !Ref IPRFrontSessionsTable
+  IPRCustomDomain:
+    Description: IPR Custom Domain API Gateway ID
+    Value: !Ref IPRFrontCustomDomain
