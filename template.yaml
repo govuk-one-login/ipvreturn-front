@@ -166,7 +166,7 @@ Resources:
     Condition: IsNotDevelopment
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub IPR-front-${Environment}-access-logs
+      BucketName: !Sub ipr-front-${Environment}-access-logs
       VersioningConfiguration:
         Status: "Enabled"
       PublicAccessBlockConfiguration:
