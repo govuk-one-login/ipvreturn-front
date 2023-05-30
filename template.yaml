@@ -85,7 +85,7 @@ Mappings:
 
     staging:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
-      DNSSUFFIX: "return-o.staging.account.gov.uk"
+      DNSSUFFIX: "return.staging.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-staging"
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
@@ -93,15 +93,15 @@ Mappings:
 
     integration:
       APIBASEURL: "https://api.return.integration.account.gov.uk"
-      DNSSUFFIX: "return-o.integration.account.gov.uk"
+      DNSSUFFIX: "return.integration.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-integration"
-      REDIRECTURL: "https://return.dev.account.gov.uk/callback"
+      REDIRECTURL: "https://return.integration.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.integration.account.gov.uk"
-      ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+      ACCOUNTSDASHBOARD: "https://home.integration.account.gov.uk"
 
     production:
       APIBASEURL: "https://api.return.account.gov.uk"
-      DNSSUFFIX: "return-o.account.gov.uk"
+      DNSSUFFIX: "return.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-production"
       REDIRECTURL: "https://return.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.account.gov.uk"
