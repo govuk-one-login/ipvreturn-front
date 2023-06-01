@@ -68,7 +68,7 @@ Mappings:
     ### These environment variables are referenced further down the file.
     ### Please ensure that any variables defined for an environment are defined for _all_ environments.
     dev:
-      APIBASEURL: "https://api-backend-main-richa-1.return.dev.account.gov.uk"
+      APIBASEURL: "https://api.return.dev.account.gov.uk"
       DNSSUFFIX: "return.dev.account.gov.uk"
       SESSIONTABLENAME: "IPR-front-sessions-dev"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
