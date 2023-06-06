@@ -577,14 +577,7 @@ Resources:
   IPRFrontCustomDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !If
-        - IsNotDevelopment
-        - !Sub
-          - "www.${DNSSUFFIX}"
-          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-        - !Sub
-          - "${AWS::StackName}.${DNSSUFFIX}"
-          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
+      DomainName: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
@@ -593,14 +586,7 @@ Resources:
   IPRFrontApiRecord:
     Type: AWS::Route53::RecordSet
     Properties:
-      Name: !If
-        - IsNotDevelopment
-        - !Sub
-          - "www.${DNSSUFFIX}"
-          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-        - !Sub
-          - "${AWS::StackName}.${DNSSUFFIX}"
-          - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
+      Name: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       Type: A
       HostedZoneId: !ImportValue PublicHostedZoneId
       AliasTarget:
