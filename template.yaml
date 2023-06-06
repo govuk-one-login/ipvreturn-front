@@ -31,6 +31,18 @@ Parameters:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles"
     Type: String
     Default: "none"
+  MaxContainerCount:
+    Description: Maximum number of FE node/express container tasks to allow autoscaling to reach
+    Type: Number
+    Default: 12
+  MinContainerCount:
+    Description: Minimum number of FE node/express container tasks to allow autoscaling to reach
+    Type: Number
+    Default: 3
+  EnableScalingInDev:
+    Type: Number
+    Default: 0
+    Description: Set to 1 to enable deployment of scaling infra in dev
 
 Conditions:
   IsNotDevelopment: !Or
@@ -44,6 +56,12 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  EnableScaling: !Or
+    - !Equals [ !Ref EnableScalingInDev, 1]
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+    - !Equals [ !Ref Environment, production ]
 
 Mappings:
   PlatformConfiguration:
@@ -265,7 +283,7 @@ Resources:
           Value: !Sub "${Environment}"
 
   IPRFrontEcsService:
-    Type: 'AWS::ECS::Service'
+    Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref IPRFrontEcsCluster
       DeploymentConfiguration:
@@ -274,7 +292,7 @@ Resources:
         DeploymentCircuitBreaker:
           Enable: TRUE
           Rollback: TRUE
-      DesiredCount: 2
+      DesiredCount: !Ref MinContainerCount
       EnableECSManagedTags: false
       HealthCheckGracePeriodSeconds: 60
       LaunchType: FARGATE
@@ -355,9 +373,9 @@ Resources:
               awslogs-group : !Ref ECSAccessLogsGroup
               awslogs-region : !Sub ${AWS::Region}
               awslogs-stream-prefix : !Sub IPR-front-${Environment}
-      Cpu: '256'
+      Cpu: '1024'
       ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
-      Memory: '512'
+      Memory: '2048'
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -539,11 +557,11 @@ Resources:
   # Scaling down will occur after 15 minutes of 90% utilization of the configured CPU utilization.
 
   ECSAutoScalingTarget:
-    Condition: IsProduction
+    Condition: EnableScaling
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
-      MaxCapacity: 3
-      MinCapacity: 1
+      MaxCapacity: !Ref MaxContainerCount
+      MinCapacity: !Ref MinContainerCount
       ResourceId: !Join
         - '/'
         - - "service"
@@ -554,7 +572,7 @@ Resources:
       ServiceNamespace: ecs
 
   ECSAutoScalingPolicy:
-    Condition: IsProduction
+    Condition: EnableScaling
     DependsOn: ECSAutoScalingTarget
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
@@ -570,7 +588,9 @@ Resources:
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
-        TargetValue: 70.0
+        TargetValue: 50.0
+        ScaleInCooldown: 0
+        ScaleOutCooldown: 0
 
 ### Front End API Gateway Custom Domain definition
 
