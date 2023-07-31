@@ -117,7 +117,7 @@ describe("returnController test", () => {
 		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://www.apply-basic-criminal-record-check.service.gov.uk/" } });
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
-		expect(mockResponse.redirect).toHaveBeenCalledWith('https://www.apply-basic-criminal-record-check.service.gov.uk/');
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://www.apply-basic-criminal-record-check.service.gov.uk/");
 	});
 
 	it("handle redirect to DVLA RP successfully when redirect url does not contain www", async () => {
@@ -145,6 +145,6 @@ describe("returnController test", () => {
 		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://www.vehicle-operator-licensing.service.gov.uk/" } });
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
-		expect(mockResponse.redirect).toHaveBeenCalledWith('https://www.vehicle-operator-licensing.service.gov.uk/');
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://www.vehicle-operator-licensing.service.gov.uk/");
 	});
 });

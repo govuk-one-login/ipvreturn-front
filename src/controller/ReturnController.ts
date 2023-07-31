@@ -5,6 +5,7 @@ import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
+import { Constants } from "../utils/Constants";
 
 export class ReturnController {
 
@@ -70,14 +71,15 @@ export class ReturnController {
     				if (resp.data && resp.status === 200 &&
 						resp.data.redirect_uri && resp.data.status === "completed") {
     					loggingHelper.info("Redirecting to RelyingParty", { "redirectUri":resp.data?.redirect_uri });
-						const rpUrl = new URL(resp.data.redirect_uri);
+    					const rpUrl = new URL(resp.data.redirect_uri);
 
-						//To handle audit events that were generated from these RPs before updated to registry was made
-						//https://govukverify.atlassian.net/browse/F2F-958
-						if (!rpUrl.hostname.startsWith("www") &&
-							(rpUrl.hostname === "apply-basic-criminal-record-check.service.gov.uk" || rpUrl.hostname === "vehicle-operator-licensing.service.gov.uk") ) {
-							rpUrl.hostname = "www" + "." + rpUrl.hostname;
-						}
+    					//To handle audit events that were generated from these RPs before updated to registry was made
+    					//https://govukverify.atlassian.net/browse/F2F-958
+    					if (!rpUrl.hostname.startsWith("www") &&
+							(rpUrl.hostname === Constants.DBS_BASE_URL || rpUrl.hostname === Constants.DVLA_BASE_URL) ) {
+    						loggingHelper.info("Found DBS or DVLA hostname without www in redirect url hence appending it");
+    						rpUrl.hostname = "www" + "." + rpUrl.hostname;
+    					}
     					res.redirect(rpUrl.toString());
     				} else {
     					this.redirectToDashboard(res, "Received no data, missing mandatory params in response or statusCode other than 200" );
