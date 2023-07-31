@@ -70,7 +70,15 @@ export class ReturnController {
     				if (resp.data && resp.status === 200 &&
 						resp.data.redirect_uri && resp.data.status === "completed") {
     					loggingHelper.info("Redirecting to RelyingParty", { "redirectUri":resp.data?.redirect_uri });
-    					res.redirect(resp.data.redirect_uri);
+						const rpUrl = new URL(resp.data.redirect_uri);
+
+						//To handle audit events that were generated from these RPs before updated to registry was made
+						//https://govukverify.atlassian.net/browse/F2F-958
+						if (!rpUrl.hostname.startsWith("www") &&
+							(rpUrl.hostname === "apply-basic-criminal-record-check.service.gov.uk" || rpUrl.hostname === "vehicle-operator-licensing.service.gov.uk") ) {
+							rpUrl.hostname = "www" + "." + rpUrl.hostname;
+						}
+    					res.redirect(rpUrl.toString());
     				} else {
     					this.redirectToDashboard(res, "Received no data, missing mandatory params in response or statusCode other than 200" );
     				}

@@ -72,10 +72,10 @@ describe("returnController test", () => {
 				"code":"abcd123",
 			},
 		};
-		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"dummy RP url" } });
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://apply-hm-armed-forces-veteran-card.service.mod.uk/offline-start" } });
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
-		expect(mockResponse.redirect).toHaveBeenCalledWith("dummy RP url");
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://apply-hm-armed-forces-veteran-card.service.mod.uk/offline-start");
 	});
 
 	it("handle Redirect and redirect to accounts dashboard as status 'pending'", async () => {
@@ -90,5 +90,61 @@ describe("returnController test", () => {
 		await returnCtrl.handleRedirect(mockRequest, mockResponse);
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
 		expect(mockResponse.redirect).toHaveBeenCalledWith("https://accounts_dashboard_url");
+	});
+
+	it("handle redirect to DBS RP successfully when redirect url does not contain www", async () => {
+
+		const mockRequest = {
+			query:{
+				"state":"471600",
+				"code":"abcd123",
+			},
+		};
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://apply-basic-criminal-record-check.service.gov.uk/" } });
+		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://www.apply-basic-criminal-record-check.service.gov.uk/");
+	});
+
+	it("handle Redirect to DBS RP successfully when redirect url contains www", async () => {
+
+		const mockRequest = {
+			query:{
+				"state":"471600",
+				"code":"abcd123",
+			},
+		};
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://www.apply-basic-criminal-record-check.service.gov.uk/" } });
+		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
+		expect(mockResponse.redirect).toHaveBeenCalledWith('https://www.apply-basic-criminal-record-check.service.gov.uk/');
+	});
+
+	it("handle redirect to DVLA RP successfully when redirect url does not contain www", async () => {
+
+		const mockRequest = {
+			query:{
+				"state":"471600",
+				"code":"abcd123",
+			},
+		};
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://vehicle-operator-licensing.service.gov.uk/" } });
+		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://www.vehicle-operator-licensing.service.gov.uk/");
+	});
+
+	it("handle Redirect to DVLA RP successfully when redirect url contains www", async () => {
+
+		const mockRequest = {
+			query:{
+				"state":"471600",
+				"code":"abcd123",
+			},
+		};
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://www.vehicle-operator-licensing.service.gov.uk/" } });
+		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
+		expect(mockResponse.redirect).toHaveBeenCalledWith('https://www.vehicle-operator-licensing.service.gov.uk/');
 	});
 });
