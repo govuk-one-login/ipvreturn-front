@@ -40,7 +40,7 @@ export class ReturnController {
     		loggingHelper.info("Fetching CLIENT_ID from SSM" );
     		ReturnController.clientId = await this.iprService.getParameter(EnvironmentVariables.getClientIdSsmPath());
     	}
-    	const authorizeUrl = `${discoveryEndpoint}/authorize?response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
+    	const authorizeUrl = `${discoveryEndpoint}/authorize?email=confirmation&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
     	loggingHelper.info("Authorize url", { authorizeUrl });
     	return authorizeUrl;
     }
