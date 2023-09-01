@@ -563,7 +563,9 @@ Resources:
           "routeKey":"$context.routeKey",
           "status":"$context.status",
           "protocol":"$context.protocol",
-          "responseLength":"$context.responseLength"
+          "responseLength":"$context.responseLength",
+          "responseLatency":"$context.responseLatency",
+          "integrationLatency":"$context.integrationLatency"
           }
   WAFv2ACLAssociation:
     Type: AWS::WAFv2::WebACLAssociation
