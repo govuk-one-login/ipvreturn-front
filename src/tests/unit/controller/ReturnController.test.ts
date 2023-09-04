@@ -39,7 +39,7 @@ describe("returnController test", () => {
 
 		const actualResult = await returnCtrl.handleResumeReturnAuthUrl();
 		const nonce = (actualResult ).split("nonce=", actualResult.length);
-		expect(actualResult).toBe(`https://discovery/authorize?email=confirmation&response_type=code&scope=openid&client_id=mockClientId&state=123456&redirect_uri=https%3A%2F%2Fredirect&nonce=${nonce[1]}`);
+		expect(actualResult).toBe(`https://discovery/authorize?result=sign-in&response_type=code&scope=openid&client_id=mockClientId&state=123456&redirect_uri=https%3A%2F%2Fredirect&nonce=${nonce[1]}`);
 	});
 
 	it("handle Redirect when query params are missing", async () => {
