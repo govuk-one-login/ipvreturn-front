@@ -1,5 +1,5 @@
 <!-- Provide a general summary of your changes in the Title above -->
-<!-- Include the Jira ticket number in square brackets as prefix, eg `[F2F-XXX] PR Title` -->
+<!-- Include the Jira ticket number in square brackets as prefix, eg `[KIWI-XXXX] PR Title` -->
 
 ## Proposed changes
 
