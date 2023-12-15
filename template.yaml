@@ -88,6 +88,7 @@ Mappings:
     dev:
       APIBASEURL: "https://api.return.dev.account.gov.uk"
       DNSSUFFIX: "return.dev.account.gov.uk"
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-dev"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
@@ -96,6 +97,7 @@ Mappings:
     build:
       APIBASEURL: "https://api.return.build.account.gov.uk"
       DNSSUFFIX: "return.build.account.gov.uk"
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-build"
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
@@ -104,6 +106,7 @@ Mappings:
     staging:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
       DNSSUFFIX: "return.staging.account.gov.uk"
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-staging"
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
@@ -112,6 +115,7 @@ Mappings:
     integration:
       APIBASEURL: "https://api.return.integration.account.gov.uk"
       DNSSUFFIX: "return.integration.account.gov.uk"
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-integration"
       REDIRECTURL: "https://return.integration.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.integration.account.gov.uk"
@@ -120,6 +124,7 @@ Mappings:
     production:
       APIBASEURL: "https://api.return.account.gov.uk"
       DNSSUFFIX: "return.account.gov.uk"
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-production"
       REDIRECTURL: "https://return.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.account.gov.uk"
@@ -398,7 +403,22 @@ Resources:
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
             - Name: CLIENT_ID_SSM_PATH
               Value: !Sub "/${Environment}/ipvreturn/CLIENT_ID"
-
+          Secrets:
+            - Name: DT_TENANT
+              ValueFrom: !Join
+                - ''
+                - - !FindInMap [ EnvironmentVariables, !Ref Environment, dynatraceSecretArn ]
+                  - ':DT_TENANT::'
+            - Name: DT_TENANTTOKEN
+              ValueFrom: !Join
+                - ''
+                - - !FindInMap [ EnvironmentVariables, !Ref Environment, dynatraceSecretArn ]
+                  - ':DT_TENANTTOKEN::'
+            - Name: DT_CONNECTION_POINT
+              ValueFrom: !Join
+              - ''
+              - - !FindInMap [ EnvironmentVariables, !Ref Environment, dynatraceSecretArn ]
+                - ':DT_CONNECTION_POINT::'
           PortMappings:
             - ContainerPort: 8080
               Protocol: tcp
@@ -454,6 +474,26 @@ Resources:
                 Resource:
                   - !GetAtt "ECSAccessLogsGroup.Arn"
                   - !Sub "${ECSAccessLogsGroup.Arn}:*"
+        - PolicyName: DynatraceGetSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                Resource:
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables*"
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables*"
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:ListSecrets"
+                Resource:
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:*"
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - "arn:aws:kms:eu-west-2:216552277552:key/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -482,7 +522,6 @@ Resources:
                   - "ssm:GetParametersByPath"
                 Resource:
                   - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/ipvreturn/CLIENT_ID"
-
         - PolicyName: IPRFrontDynamoDBSessionAccess
           PolicyDocument:
             Version: "2012-10-17"
@@ -500,6 +539,26 @@ Resources:
                   - "dynamodb:PutItem"
                 Resource:
                   - !GetAtt IPRFrontSessionsTable.Arn
+        - PolicyName: DynatraceGetSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                Resource:
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables*"
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables*"
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:ListSecrets"
+                Resource:
+                  - "arn:aws:secretsmanager:eu-west-2:216552277552:secret:*"
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - "arn:aws:kms:eu-west-2:216552277552:key/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
