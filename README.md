@@ -8,6 +8,9 @@ To deploy a copy of the frontend infra from a local branch as a separate isolate
 - the run:
 
 ```shell
+
+
+
 sam build --parallel --no-cached
 sam deploy --resolve-s3 --stack-name "CUSTOM_STACK_NAME" --capabilities CAPABILITY_IAM --confirm-changeset --parameter-overrides \
 "Environment=\"dev\" PermissionsBoundary=\"none\" VpcStackName=\"vpc-cri\" EnableScalingInDev=0"
