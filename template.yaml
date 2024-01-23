@@ -782,11 +782,8 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-StepScaleOutAlarm"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmActions:
         - !Ref StepScaleOutPolicy
-        - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmDescription: "IPRFrontEcsClusterOver60PercentCPU"
       ComparisonOperator: "GreaterThanThreshold"
       DatapointsToAlarm: "2"
@@ -810,11 +807,8 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-StepScaleInAlarm"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmActions:
         - !Ref StepScaleInPolicy
-        - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmDescription: "IPRFrontEcsClusterUnder60PercentCPU"
       ComparisonOperator: "LessThanThreshold"
       DatapointsToAlarm: "5"
