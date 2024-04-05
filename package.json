@@ -9,7 +9,8 @@
     "start": "NODE_ENV=production node build/src/Index.js",
     "test": "npm run build && npm run unit",
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
-    "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts ."
+    "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
+    "test:ipvr": "bash ./checkIpvResume.sh"
   },
   "keywords": [],
   "author": "",
