@@ -37,6 +37,8 @@ if [[ $status_503 -eq 1 ]] && [[ -z "$domains" ]]; then
 elif [[ $error_occurred -eq 1 ]]; then
   echo "Error: An unspecified error occurred."
   exit 1
+else
+  echo "IPR all okay!"
 fi
 
 exit 0
