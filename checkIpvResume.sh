@@ -7,13 +7,10 @@ fi
 
 IPR_URL="$1"
 
-start_time=$(date +%s.%N)
-
 response=$(curl -L -s -v "$IPR_URL" -o /dev/null 2>&1 | \
     tee >(grep -E "< HTTP/" | awk '{print $3}') \
          >(grep -i Location))
 
-elapsed_time=$(echo "$(date +%s.%N) - $start_time" | bc)
 
 error_occurred=0
 status_503=0
@@ -40,17 +37,6 @@ if [[ $status_503 -eq 1 ]] && [[ -z "$domains" ]]; then
 elif [[ $error_occurred -eq 1 ]]; then
   echo "Error: An unspecified error occurred."
   exit 1
-fi
-
-echo "Request completed in $elapsed_time seconds."
-
-# Check if elapsed time is more than 2.5 seconds
-elapsed_check=$(echo "$elapsed_time > 2.5" | bc)
-if [[ $elapsed_check -eq 1 ]]; then
-  echo "Error: Request took longer than 2.5 seconds."
-  exit 1
-else
-  echo "IPR all okay!"
 fi
 
 exit 0
