@@ -6,6 +6,7 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
+import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
 
 export class ReturnController {
 
@@ -64,8 +65,14 @@ export class ReturnController {
     				this.redirectToDashboard(res, "Got error deleting record from DB");
     			}
 
+				const headers = {
+					...createPersonalDataHeaders(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`, req),
+				  };
+
     			try {
-    				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`);
+    				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`,{
+						headers,
+					  });
     				loggingHelper.info("Received response", { "response":resp?.data, "statusCode":resp?.status });
 
     				if (resp.data && resp.status === 200 &&
