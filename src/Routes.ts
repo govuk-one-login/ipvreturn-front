@@ -17,7 +17,6 @@ export const register = ( router: express.Application ) => {
 	});
 
 	router.get("/callback", async (req, res): Promise<void> => {
-
 		try {
 			loggingHelper.debug("Processing /callback");
 			await ReturnController.getInstance().handleRedirect(req, res);

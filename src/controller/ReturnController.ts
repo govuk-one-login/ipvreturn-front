@@ -12,7 +12,7 @@ export class ReturnController {
 
     private static instance: ReturnController;
 
-	private static clientId: string;
+    private static clientId: string;
 
     private readonly iprService: ReturnService;
 
@@ -27,9 +27,7 @@ export class ReturnController {
     	return ReturnController.instance;
     }
 
-
     async handleResumeReturnAuthUrl(): Promise<string> {
-
     	const state = await this.iprService.createSession();
     	loggingHelper.info("State ", { state });
     	const redirectUri = encodeURIComponent(EnvironmentVariables.getRedirectUrl());
@@ -47,7 +45,6 @@ export class ReturnController {
     }
 
     async handleRedirect(req: any, res: any): Promise<any> {
-
     	if (req.query) {
     		loggingHelper.info("Query params received", { "queryParams":req.query });
     		if (req.query.error) {
