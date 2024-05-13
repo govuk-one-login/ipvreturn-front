@@ -30,7 +30,7 @@ export class EnvironmentVariables {
 	 * Accessor methods for env variable values
 	 */
 
-	static getRedirectUrl(): any {
+	static getRedirectUrl(): string {
 		if (!this.REDIRECT_URL || this.REDIRECT_URL.trim().length === 0) {
 			loggingHelper.error(`Misconfigured RedirectUrl ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -38,7 +38,7 @@ export class EnvironmentVariables {
 		return this.REDIRECT_URL;
 	}
 
-	static getClientIdSsmPath(): any {
+	static getClientIdSsmPath(): string {
 		if (!this.CLIENT_ID_SSM_PATH || this.CLIENT_ID_SSM_PATH.trim().length === 0) {
 			loggingHelper.error(`Misconfigured ClientId SSM Path ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -46,7 +46,7 @@ export class EnvironmentVariables {
 		return this.CLIENT_ID_SSM_PATH;
 	}
 
-	static getDiscoveryEndpoint(): any {
+	static getDiscoveryEndpoint(): string {
 		if (!this.DISCOVERY_ENDPOINT || this.DISCOVERY_ENDPOINT.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Discovery endpoint ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -55,7 +55,7 @@ export class EnvironmentVariables {
 	}
 
 
-	static getSessionTableName(): any {
+	static getSessionTableName(): string {
 		if (!this.SESSION_TABLE_NAME || this.SESSION_TABLE_NAME.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Session table name ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -63,7 +63,7 @@ export class EnvironmentVariables {
 		return this.SESSION_TABLE_NAME;
 	}
 
-	static getSessionTtlInSecs(): any {
+	static getSessionTtlInSecs(): number {
 		if (!this.SESSION_TTL_IN_SECS) {
 			this.SESSION_TTL_IN_SECS = 300;
 			loggingHelper.warn("SESSION_TTL_IN_SECS env var is not set. Setting to default - 5 mins.");
@@ -71,7 +71,7 @@ export class EnvironmentVariables {
 		return this.SESSION_TTL_IN_SECS;
 	}
 
-	static getFrontEndDomain(): any {
+	static getFrontEndDomain(): string {
 		if (!this.FRONT_END_CUSTOM_DOMAIN	|| this.FRONT_END_CUSTOM_DOMAIN.trim().length === 0) {
 			this.FRONT_END_CUSTOM_DOMAIN = "localhost";
 			loggingHelper.warn("FRONT_END_CUSTOM_DOMAIN env var is not set. Setting to default - localhost.");
@@ -79,7 +79,7 @@ export class EnvironmentVariables {
 		return this.FRONT_END_CUSTOM_DOMAIN;
 	}
 
-	static getPort(): any {
+	static getPort(): number {
 		if (!this.PORT) {
 			this.PORT = 8080;
 			loggingHelper.warn("PORT env var is not set. Setting to default - 8080.");
@@ -87,7 +87,7 @@ export class EnvironmentVariables {
 		return this.PORT;
 	}
 
-	static getApiBaseUrl(): any {
+	static getApiBaseUrl(): string {
 		if (!this.API_BASE_URL || this.API_BASE_URL.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Api Base url ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -95,7 +95,7 @@ export class EnvironmentVariables {
 		return this.API_BASE_URL;
 	}
 
-	static getAccountsDashboardUrl(): any {
+	static getAccountsDashboardUrl(): string {
 		if (!this.ACCOUNTS_DASHBOARD	|| this.ACCOUNTS_DASHBOARD.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Accounts dashboard url ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
