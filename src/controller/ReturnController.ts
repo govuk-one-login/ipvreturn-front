@@ -103,7 +103,7 @@ export class ReturnController {
 
     }
 
-    redirectToDashboard(res: any, reason: string, error?: any): any {
+    redirectToDashboard(res: any, reason: string, error?: any): void {
     	if (error) {
     		loggingHelper.error("Redirecting to accounts dashboard", { reason, error });
     	} else {

@@ -7,10 +7,9 @@ import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import axios from "axios";
 
 let returnCtrl: ReturnController;
-
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockedreturnService = mock<ReturnService>();
-let mockRequest = {};
+const defaultMockRequest = { headers: {} };
 let redirectToDashboardSpy: any;
 jest.mock("axios");
 
@@ -42,14 +41,15 @@ describe("returnController test", () => {
 	});
 
 	it("handles Redirect when query params are missing", async () => {
-		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		await returnCtrl.handleRedirect(defaultMockRequest, mockResponse);
 		expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(1, mockResponse, "Missing query parameters in request");
 		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
 		expect(mockResponse.redirect).toHaveBeenCalledWith("https://accounts_dashboard_url");
 	});
 
 	it("handles Redirect when query error received", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"error":"invalid_request",
 				"error_description":"Unsupported%20response",
@@ -62,7 +62,8 @@ describe("returnController test", () => {
 	});
 
 	it("handles Redirect and redirect to RP successfully", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -74,8 +75,28 @@ describe("returnController test", () => {
 		expect(mockResponse.redirect).toHaveBeenCalledWith("https://apply-hm-armed-forces-veteran-card.service.mod.uk/offline-start");
 	});
 
+	it("handles Redirect and redirect to RP successfully with encoded header", async () => {
+		const mockRequest = {
+			...defaultMockRequest,
+			headers: {
+				"txma-audit-encoded": "dummy-txma-header",
+			},
+			query:{
+				"state":"471600",
+				"code":"abcd123",
+			},
+		};
+		mockedAxios.get.mockResolvedValue({ status:200, data: { "status":"completed", "redirect_uri":"https://apply-hm-armed-forces-veteran-card.service.mod.uk/offline-start" } });
+		await returnCtrl.handleRedirect(mockRequest, mockResponse);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockedAxios.get).toHaveBeenCalledWith("https://localhost/session?code=abcd123", { headers: { "txma-audit-encoded": "dummy-txma-header" } });
+		expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
+		expect(mockResponse.redirect).toHaveBeenCalledWith("https://apply-hm-armed-forces-veteran-card.service.mod.uk/offline-start");
+	});
+
 	it("handles Redirect and redirect to accounts dashboard as status 'pending'", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -88,7 +109,8 @@ describe("returnController test", () => {
 	});
 
 	it("handles redirect to DBS RP successfully when redirect url does not contain www", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -101,7 +123,8 @@ describe("returnController test", () => {
 	});
 
 	it("handles Redirect to DBS RP successfully when redirect url contains www", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -114,7 +137,8 @@ describe("returnController test", () => {
 	});
 
 	it("handles redirect to DVLA RP successfully when redirect url does not contain www", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -127,7 +151,8 @@ describe("returnController test", () => {
 	});
 
 	it("handles Redirect to DVLA RP successfully when redirect url contains www", async () => {
-		mockRequest = {
+		const mockRequest = {
+			...defaultMockRequest,
 			query:{
 				"state":"471600",
 				"code":"abcd123",
