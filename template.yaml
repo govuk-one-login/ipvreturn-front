@@ -771,7 +771,7 @@ Resources:
         - "origin.${DNSSUFFIX}"
         - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       Type: A
-      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
+      HostedZoneId: !ImportValue PublicHostedZoneId
       AliasTarget:
         DNSName: !GetAtt IPRFrontCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt IPRFrontCustomDomain.RegionalHostedZoneId
