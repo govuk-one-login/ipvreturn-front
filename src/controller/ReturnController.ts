@@ -64,15 +64,14 @@ export class ReturnController {
     			} catch {
     				this.redirectToDashboard(res, "Got error deleting record from DB");
     			}
+    			const sessionUrl = `${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`;
 
-				const headers = {
-					...createPersonalDataHeaders(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`, req),
+    			const headers = {
+    				...createPersonalDataHeaders(sessionUrl, req),
 				  };
 
     			try {
-    				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`,{
-						headers,
-					  });
+    				const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
     				loggingHelper.info("Received response", { "response":resp?.data, "statusCode":resp?.status });
 
     				if (resp.data && resp.status === 200 &&
@@ -104,7 +103,7 @@ export class ReturnController {
 
     }
 
-    redirectToDashboard(res: any, reason: string, error?: any) {
+    redirectToDashboard(res: any, reason: string, error?: any): any {
     	if (error) {
     		loggingHelper.error("Redirecting to accounts dashboard", { reason, error });
     	} else {

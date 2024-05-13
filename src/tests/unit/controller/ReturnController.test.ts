@@ -9,7 +9,7 @@ let returnCtrl: ReturnController;
 
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockedreturnService = mock<ReturnService>();
-const mockRequest = {};
+let mockRequest = {};
 let redirectToDashboardSpy: any;
 jest.mock("axios");
 
@@ -52,7 +52,7 @@ describe("returnController test", () => {
 
 	it("handle Redirect when query error received", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"error":"invalid_request",
 				"error_description":"Unsupported%20response",
@@ -66,7 +66,7 @@ describe("returnController test", () => {
 
 	it("handle Redirect and redirect to RP successfully", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -80,7 +80,7 @@ describe("returnController test", () => {
 
 	it("handle Redirect and redirect to accounts dashboard as status 'pending'", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -94,7 +94,7 @@ describe("returnController test", () => {
 
 	it("handle redirect to DBS RP successfully when redirect url does not contain www", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -108,7 +108,7 @@ describe("returnController test", () => {
 
 	it("handle Redirect to DBS RP successfully when redirect url contains www", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -122,7 +122,7 @@ describe("returnController test", () => {
 
 	it("handle redirect to DVLA RP successfully when redirect url does not contain www", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
@@ -136,7 +136,7 @@ describe("returnController test", () => {
 
 	it("handle Redirect to DVLA RP successfully when redirect url contains www", async () => {
 
-		const mockRequest = {
+		mockRequest = {
 			query:{
 				"state":"471600",
 				"code":"abcd123",
