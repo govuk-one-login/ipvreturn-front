@@ -69,6 +69,9 @@ Conditions:
   DeployAlarms: !Or
     - Condition: IsNotDevelopment
     - !Equals [!Ref DeployAlarmsInDev, true]
+  IsCloudFrontPilotTesting: !Equals
+    - !Ref Environment
+    - dev
 
 Mappings:
   PlatformConfiguration:
@@ -639,6 +642,7 @@ Resources:
           }
   WAFv2ACLAssociation:
     Type: AWS::WAFv2::WebACLAssociation
+    Condition: IsNotDevelopment
     Properties:
       ResourceArn: !Ref LoadBalancer
       WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/Block/WafArn}}"
@@ -752,6 +756,20 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       Name: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
+      Type: A
+      HostedZoneId: !ImportValue PublicHostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt IPRFrontCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt IPRFrontCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  IPRFrontApiOriginRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: IsCloudFrontPilotTesting
+    Properties:
+      Name: !Sub
+        - "origin.${DNSSUFFIX}"
+        - DNSSUFFIX: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       Type: A
       HostedZoneId: !ImportValue PublicHostedZoneId
       AliasTarget:
