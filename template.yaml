@@ -69,6 +69,13 @@ Conditions:
   DeployAlarms: !Or
     - Condition: IsNotDevelopment
     - !Equals [!Ref DeployAlarmsInDev, true]
+  IsCloudFrontTesting: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+  IsWAFAssosciationEnable: !Not
+    - !Condition IsCloudFrontTesting
 
 Mappings:
   PlatformConfiguration:
@@ -95,6 +102,7 @@ Mappings:
     dev:
       APIBASEURL: "https://api.return.dev.account.gov.uk"
       DNSSUFFIX: "return.dev.account.gov.uk"
+      CLOUDFRONTDOMAIN: "d2kv7jdinj079c.cloudfront.net"
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-dev"
       REDIRECTURL: "https://return.dev.account.gov.uk/callback"
@@ -104,6 +112,7 @@ Mappings:
     build:
       APIBASEURL: "https://api.return.build.account.gov.uk"
       DNSSUFFIX: "return.build.account.gov.uk"
+      CLOUDFRONTDOMAIN: "d3a4mbdgtspmat.cloudfront.net"
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-build"
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
@@ -113,6 +122,7 @@ Mappings:
     staging:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
       DNSSUFFIX: "return.staging.account.gov.uk"
+      CLOUDFRONTDOMAIN: "djxqvt2myetxl.cloudfront.net"
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-staging"
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
@@ -122,6 +132,7 @@ Mappings:
     integration:
       APIBASEURL: "https://api.return.integration.account.gov.uk"
       DNSSUFFIX: "return.integration.account.gov.uk"
+      CLOUDFRONTDOMAIN: "d25la6srv8w0nq.cloudfront.net"
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-integration"
       REDIRECTURL: "https://return.integration.account.gov.uk/callback"
@@ -131,6 +142,7 @@ Mappings:
     production:
       APIBASEURL: "https://api.return.account.gov.uk"
       DNSSUFFIX: "return.account.gov.uk"
+      CLOUDFRONTDOMAIN: ""
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-production"
       REDIRECTURL: "https://return.account.gov.uk/callback"
@@ -639,6 +651,7 @@ Resources:
           }
   WAFv2ACLAssociation:
     Type: AWS::WAFv2::WebACLAssociation
+    Condition: IsWAFAssosciationEnable
     Properties:
       ResourceArn: !Ref LoadBalancer
       WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/Block/WafArn}}"
@@ -754,8 +767,12 @@ Resources:
       Name: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
       Type: A
       HostedZoneId: !ImportValue PublicHostedZoneId
-      AliasTarget:
-        DNSName: !GetAtt IPRFrontCustomDomain.RegionalDomainName
+      AliasTarget: !If
+      - IsCloudFrontTesting
+      - DNSName:  !FindInMap [EnvironmentVariables, !Ref Environment, CLOUDFRONTDOMAIN]
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+      - DNSName: !GetAtt IPRFrontCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt IPRFrontCustomDomain.RegionalHostedZoneId
         EvaluateTargetHealth: false
 
