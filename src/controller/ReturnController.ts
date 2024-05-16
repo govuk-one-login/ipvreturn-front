@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 import { ReturnService } from "../services/ReturnService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { randomUUID } from "crypto";
@@ -45,7 +47,11 @@ export class ReturnController {
     }
 
     async handleRedirect(req: any, res: any): Promise<any> {
+
+    	console.log("================================");
     	if (req.query) {
+    		console.log("req.query", req.query);
+
     		loggingHelper.info("Query params received", { "queryParams":req.query });
     		if (req.query.error) {
     			loggingHelper.error("Received error response from /authorize", {
@@ -54,10 +60,17 @@ export class ReturnController {
     			});
     			this.redirectToDashboard(res, "Received error response from /authorize");
     		}
+
+    		console.log("state", req.query.state);
+    		console.log("code", req.query.code);
+
     		if (req.query.state && req.query.code) {
     			try {
     				loggingHelper.info("Received success response", { "code": req.query.code, "state": req.query.state });
     				await this.iprService.deleteSession(req.query.state);
+
+    				console.log("succcessfully deleted from db");
+
     			} catch {
     				this.redirectToDashboard(res, "Got error deleting record from DB");
     			}
@@ -66,6 +79,10 @@ export class ReturnController {
     			const headers = {
     				...createPersonalDataHeaders(sessionUrl, req),
 				  };
+
+    			console.log("sessionUrl", sessionUrl);
+    			console.log("headers", headers);
+					
 
     			try {
     				const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
