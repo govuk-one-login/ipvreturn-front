@@ -6,12 +6,13 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
+import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
 
 export class ReturnController {
 
     private static instance: ReturnController;
 
-	private static clientId: string;
+    private static clientId: string;
 
     private readonly iprService: ReturnService;
 
@@ -26,9 +27,7 @@ export class ReturnController {
     	return ReturnController.instance;
     }
 
-
     async handleResumeReturnAuthUrl(): Promise<string> {
-
     	const state = await this.iprService.createSession();
     	loggingHelper.info("State ", { state });
     	const redirectUri = encodeURIComponent(EnvironmentVariables.getRedirectUrl());
@@ -46,7 +45,6 @@ export class ReturnController {
     }
 
     async handleRedirect(req: any, res: any): Promise<any> {
-
     	if (req.query) {
     		loggingHelper.info("Query params received", { "queryParams":req.query });
     		if (req.query.error) {
@@ -63,9 +61,14 @@ export class ReturnController {
     			} catch {
     				this.redirectToDashboard(res, "Got error deleting record from DB");
     			}
+    			const sessionUrl = `${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`;
+
+    			const headers = {
+    				...createPersonalDataHeaders(sessionUrl, req),
+				  };
 
     			try {
-    				const resp: AxiosResponse = await axios.get(`${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`);
+    				const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
     				loggingHelper.info("Received response", { "response":resp?.data, "statusCode":resp?.status });
 
     				if (resp.data && resp.status === 200 &&
@@ -97,7 +100,7 @@ export class ReturnController {
 
     }
 
-    redirectToDashboard(res: any, reason: string, error?: any) {
+    redirectToDashboard(res: any, reason: string, error?: any): void {
     	if (error) {
     		loggingHelper.error("Redirecting to accounts dashboard", { reason, error });
     	} else {
