@@ -69,6 +69,7 @@ Conditions:
   DeployAlarms: !Or
     - Condition: IsNotDevelopment
     - !Equals [!Ref DeployAlarmsInDev, true]
+  EnableSpotArmInstance: !Equals [!Ref Environment, dev]
 
 Mappings:
   PlatformConfiguration:
