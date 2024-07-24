@@ -1,4 +1,4 @@
-FROM --platform="linux/arm64" arm64v8/node@sha256:b16c4e21f9e9e4d02c226d7b2dde3283fc9315104b66009af546b50f5c7acad4
+FROM --platform="linux/arm64" arm64v8/node@sha256:33f012246d4d73dfea86ec6600d12d1c476a72102a55480ee7fc3c7709752e9d
 WORKDIR /usr/index
 COPY package*.json ./
 RUN npm ci --only-production
