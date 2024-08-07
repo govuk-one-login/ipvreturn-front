@@ -27,6 +27,11 @@ Parameters:
       The name of the stack that defines the VPC in which this container will
       run.
     Type: String
+  CodeSigningConfigArn:
+    Type: String
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline.
+    Default: "none"
   PermissionsBoundary:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles"
     Type: String
@@ -49,12 +54,21 @@ Parameters:
     Default: false
 
 Conditions:
+    # TODO: Replace with Prod and Integration when tests in Dev complete
+  UseCanaryDeployment: !Or
+      - !Equals [ !Ref Environment, dev ]
+      - !Equals [ !Ref Environment, build ]
   IsNotDevelopment: !Or
     - !Equals [ !Ref Environment, build ]
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
     - !Equals [ !Ref Environment, production ]
   IsProduction: !Equals [ !Ref Environment, production ]
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
   UsePermissionsBoundary:
     Fn::Not:
       - Fn::Equals:
@@ -275,6 +289,23 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 60
 
+  LoadBalancerListenerTargetGroupECSGreen:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      HealthCheckEnabled: TRUE
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200-499
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60
+
   LoadBalancerListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
@@ -308,12 +339,19 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref IPRFrontEcsCluster
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 50
-        DeploymentCircuitBreaker:
-          Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
-          Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
+      DeploymentConfiguration: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - MaximumPercent: 200
+          MinimumHealthyPercent: 50
+          DeploymentCircuitBreaker:
+            Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
+            Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
+      DeploymentController:
+        Type: !If
+          - UseCanaryDeployment
+          - CODE_DEPLOY
+          - ECS
       DesiredCount: !Ref MinContainerCount
       EnableECSManagedTags: false
       HealthCheckGracePeriodSeconds: 60
@@ -1012,9 +1050,6 @@ Resources:
             Stat: p99
 
   FELowContainerTaskCountAlarm:
-    DependsOn:
-      - IPRFrontEcsService
-      - IPRFrontEcsCluster
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
@@ -1046,9 +1081,6 @@ Resources:
             Stat: Minimum
 
   FEHighContainerTaskCountWarning:
-    DependsOn:
-      - IPRFrontEcsService
-      - IPRFrontEcsCluster
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
@@ -1083,9 +1115,6 @@ Resources:
             Stat: Minimum
 
   FELowContainerTaskCountCriticalAlarm:
-    DependsOn:
-      - IPRFrontEcsService
-      - IPRFrontEcsCluster
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
