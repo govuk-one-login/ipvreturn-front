@@ -340,19 +340,20 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref IPRFrontEcsCluster
-      DeploymentConfiguration: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - MaximumPercent: 200
-          MinimumHealthyPercent: 50
-          DeploymentCircuitBreaker:
-            Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
-            Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
+      # DeploymentConfiguration: !If
+      #   - UseCanaryDeployment
+      #   - !Ref AWS::NoValue
+      #   - MaximumPercent: 200
+      #     MinimumHealthyPercent: 50
+      #     DeploymentCircuitBreaker:
+      #       Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
+      #       Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
       DeploymentController:
-        Type: !If
-          - UseCanaryDeployment
-          - CODE_DEPLOY
-          - ECS
+        Type: CODE_DEPLOY
+        # Type: !If:
+        #   - UseCanaryDeployment
+        #   - CODE_DEPLOY
+        #   - ECS
       DesiredCount: !Ref MinContainerCount
       EnableECSManagedTags: false
       HealthCheckGracePeriodSeconds: 60
