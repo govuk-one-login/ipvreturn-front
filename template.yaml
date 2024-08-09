@@ -350,10 +350,10 @@ Resources:
       #       Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
       DeploymentController:
         Type: CODE_DEPLOY
-        # Type: !If:
-        #   - UseCanaryDeployment
-        #   - CODE_DEPLOY
-        #   - ECS
+        Type: !If:
+          - UseCanaryDeployment
+          - CODE_DEPLOY
+          - ECS
       DesiredCount: !Ref MinContainerCount
       EnableECSManagedTags: false
       HealthCheckGracePeriodSeconds: 60
@@ -1181,7 +1181,7 @@ Resources:
 
   FrontTargetGroup5xxPercentErrors:
     Type: AWS::CloudWatch::Alarm
-    # Condition: UseCanaryDeployment
+    Condition: UseCanaryDeployment
     Properties:
       AlarmName: FrontTargetGroup5xxPercentAlarm
       AlarmDescription: >
