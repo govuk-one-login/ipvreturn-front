@@ -349,7 +349,6 @@ Resources:
       #       Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
       #       Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
       DeploymentController:
-        Type: CODE_DEPLOY
         Type: !If:
           - UseCanaryDeployment
           - CODE_DEPLOY
