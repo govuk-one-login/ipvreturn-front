@@ -55,13 +55,6 @@ Parameters:
     Description: "Predefined deployment configuration for ECS application"
     Type: String
     Default: "None"
-    AllowedValues:
-      - None
-      - CodeDeployDefault.ECSCanary10Percent5Minutes
-      - CodeDeployDefault.ECSCanary10Percent15Minutes
-      - CodeDeployDefault.ECSAllAtOnce
-      - CodeDeployDefault.ECSLinear10PercentEvery1Minutes
-      - CodeDeployDefault.ECSLinear10PercentEvery3Minutes
 
 Conditions:
   IsNotDevelopment: !Or
@@ -69,12 +62,16 @@ Conditions:
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
     - !Equals [ !Ref Environment, production ]
-  UsePermissionsBoundary: !Not
-    - !Equals [!Ref PermissionsBoundary, "none"]
-  UseCodeSigning: !Not
-    - !Equals [!Ref CodeSigningConfigArn, "none"]
-  UseCanaryDeployment: !Not
-    - !Equals [!Ref DeploymentStrategy, "None"]
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
   EnableScaling: !Or
     - !Equals [ !Ref EnableScalingInDev, 1]
     - !Equals [ !Ref Environment, build ]
@@ -85,7 +82,9 @@ Conditions:
     - Condition: IsNotDevelopment
     - !Equals [!Ref DeployAlarmsInDev, true]
   EnableSpotArmInstance: !Equals [!Ref Environment, dev]
-
+# DO WE NEED TO CHANGE THE ARN?
+  UseCanaryDeployment: !Not
+    - !Equals [!Ref DeploymentStrategy, "None"]
 Mappings:
   PlatformConfiguration:
     dev:
