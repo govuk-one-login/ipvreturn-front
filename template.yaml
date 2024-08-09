@@ -49,13 +49,19 @@ Parameters:
     Default: false
   CodeSigningConfigArn:
     Type: String
-    Description: >
-      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+    Description: The ARN of the Code Signing Config to use, provided by the deployment pipeline
     Default: "none"
   DeploymentStrategy:
     Description: "Predefined deployment configuration for ECS application"
     Type: String
-    Default: "None"
+    Default: "CodeDeployDefault.ECSAllAtOnce"
+    AllowedValues:
+      - None
+      - CodeDeployDefault.ECSCanary10Percent5Minutes
+      - CodeDeployDefault.ECSCanary10Percent15Minutes
+      - CodeDeployDefault.ECSAllAtOnce
+      - CodeDeployDefault.ECSLinear10PercentEvery1Minutes
+      - CodeDeployDefault.ECSLinear10PercentEvery3Minutes
 
 Conditions:
   IsNotDevelopment: !Or
