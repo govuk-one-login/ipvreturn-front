@@ -54,7 +54,7 @@ Parameters:
   DeploymentStrategy:
     Description: "Predefined deployment configuration for ECS application"
     Type: String
-    Default: "CodeDeployDefault.ECSAllAtOnce"
+    Default: "None"
     AllowedValues:
       - None
       - CodeDeployDefault.ECSCanary10Percent5Minutes
