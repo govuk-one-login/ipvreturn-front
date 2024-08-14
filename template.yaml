@@ -285,7 +285,7 @@ Resources:
   #     Port: 80
   #     Protocol: HTTP
 
-    LoadBalancerListenerDuplicate:
+  LoadBalancerListenerDuplicate:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
       DefaultActions:
