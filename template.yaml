@@ -275,24 +275,14 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 60
 
-  # LoadBalancerListener:
-  #   Type: 'AWS::ElasticLoadBalancingV2::Listener'
-  #   Properties:
-  #     DefaultActions:
-  #       - TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
-  #         Type: forward
-  #     LoadBalancerArn: !Ref LoadBalancer
-  #     Port: 80
-  #     Protocol: HTTP
-
-  LoadBalancerListenerDup:
+  LoadBalancerListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
       DefaultActions:
         - TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
           Type: forward
       LoadBalancerArn: !Ref LoadBalancer
-      Port: 8008
+      Port: 80
       Protocol: HTTP
 
   # ECS cluster, service
@@ -353,7 +343,7 @@ Resources:
         - Key: Environment
           Value: !Sub "${Environment}"
     DependsOn:
-      - LoadBalancerListenerDup
+      - LoadBalancerListener
 
   ECSAccessLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -617,7 +607,7 @@ Resources:
           !Sub "${VpcStackName}-VpcLinkId"
       ConnectionType: VPC_LINK
       IntegrationMethod: ANY
-      IntegrationUri: !Ref LoadBalancerListenerDup
+      IntegrationUri: !Ref LoadBalancerListener
       PayloadFormatVersion: '1.0'
 
   APIGWRoute:
