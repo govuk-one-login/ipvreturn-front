@@ -285,7 +285,7 @@ Resources:
   #     Port: 80
   #     Protocol: HTTP
 
-  LoadBalancerListenerDuplicate:
+  LoadBalancerListenerDup:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
       DefaultActions:
@@ -353,7 +353,7 @@ Resources:
         - Key: Environment
           Value: !Sub "${Environment}"
     DependsOn:
-      - LoadBalancerListenerDuplicate
+      - LoadBalancerListenerDup
 
   ECSAccessLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -617,7 +617,7 @@ Resources:
           !Sub "${VpcStackName}-VpcLinkId"
       ConnectionType: VPC_LINK
       IntegrationMethod: ANY
-      IntegrationUri: !Ref LoadBalancerListenerDuplicate
+      IntegrationUri: !Ref LoadBalancerListenerDup
       PayloadFormatVersion: '1.0'
 
   APIGWRoute:
