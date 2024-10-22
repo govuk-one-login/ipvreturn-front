@@ -382,9 +382,11 @@ Resources:
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       MetricName: ECSFatalerror-message
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -691,9 +693,11 @@ Resources:
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       MetricName: APIGWFatalerror-message
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -827,9 +831,11 @@ Resources:
       AlarmDescription: Trigger the alarm if errorThreshold exceeds 10% with a minimum of 150 invocations and a minimum of 5 errors in 5 out of the last 5 minutes
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       Dimensions: []
       EvaluationPeriods: 5
