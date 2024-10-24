@@ -14,28 +14,28 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
-    # steps:
-    #   - name: Checkout
-    #     uses: actions/checkout@v4
-    #   - name: Checks if commiting secrets to repo
-    #     uses: pre-commit/action@v3.0.1
-    #     with:
-    #       extra_args: "detect-secrets --all-files"
-    #   - name: Setup nodeJS v18
-    #     uses: actions/setup-node@v4
-    #     with:
-    #       node-version: 18
-    #   - name: Install dependencies
-    #     run: npm install
-    #   - name: Run lint
-    #     run: npm run lint
-    #   - name: Run build
-    #     run: npm run build
-    #   - name: Run test and write coverage
-    #     run: npm run test
-    #   - name: "Run SonarCloud Scan"
-    #     if: ${{ success() && github.actor != 'dependabot[bot]' }}
-    #     uses: SonarSource/sonarcloud-github-action@master
-    #     env:
-    #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+       - name: Checkout
+         uses: actions/checkout@v4
+       - name: Checks if commiting secrets to repo
+         uses: pre-commit/action@v3.0.1
+         with:
+           extra_args: "detect-secrets --all-files"
+       - name: Setup nodeJS v18
+         uses: actions/setup-node@v4
+         with:
+           node-version: 18
+       - name: Install dependencies
+         run: npm install
+       - name: Run lint
+         run: npm run lint
+       - name: Run build
+         run: npm run build
+       - name: Run test and write coverage
+         run: npm run test
+       - name: "Run SonarCloud Scan"
+         if: ${{ success() && github.actor != 'dependabot[bot]' }}
+         uses: SonarSource/sonarcloud-github-action@master
+         env:
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
