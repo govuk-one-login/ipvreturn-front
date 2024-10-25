@@ -362,7 +362,7 @@ Resources:
 
   ECSFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: IsNotDevelopment
     Properties:
       LogGroupName: !Ref ECSAccessLogsGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -376,7 +376,7 @@ Resources:
     DependsOn:
       - "ECSFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: IsNotDevelopment
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ECSFatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs"
@@ -673,7 +673,7 @@ Resources:
 
   APIGWFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: IsNotDevelopment
     Properties:
       LogGroupName: !Ref APIGWAccessLogsGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -687,7 +687,7 @@ Resources:
     DependsOn:
       - "APIGWFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: IsNotDevelopment
     Properties:
       AlarmName: !Sub "${AWS::StackName}-APIGWFatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs"
@@ -825,7 +825,7 @@ Resources:
 
   FE5XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: IsNotDevelopment
     Properties:
       AlarmName: !Sub "${AWS::StackName}-FE5XXErrorAlarm"
       AlarmDescription: Trigger the alarm if errorThreshold exceeds 10% with a minimum of 150 invocations and a minimum of 5 errors in 5 out of the last 5 minutes
