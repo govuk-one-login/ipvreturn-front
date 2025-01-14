@@ -1,4 +1,4 @@
-FROM node:18.16.0-alpine3.16@sha256:f47850733d8522489f57bfe86d790b1ee167a4b863d83d37572fb28cf10ec5e8
+FROM node:20.18.1-alpine3.19@sha256:50209a555b1016096a415de2c055bc88dffb31b5afbca0ac237f027a41cbbe6e
 WORKDIR /usr/index
 COPY package*.json ./
 RUN npm ci --only-production
