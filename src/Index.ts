@@ -6,6 +6,11 @@ import { loggingHelper } from "./utils/LoggingHelper";
 
 const index = express();
 
+index.get("/healthcheck", (req, res) => {
+	loggingHelper.info(`Healthcheck returning 200 OK.`);
+	return res.status(200).send("OK");
+});
+
 Routes.register(index);
 
 index.listen(EnvironmentVariables.getPort(), () => {

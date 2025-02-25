@@ -4,6 +4,11 @@ import { loggingHelper } from "./utils/LoggingHelper";
 import { EnvironmentVariables } from "./utils/EnvironmentVariables";
 
 export const register = ( router: express.Application ) => {
+	router.get("/healthcheck", (req, res) => {
+		loggingHelper.info(`Healthcheck returning 200 OK.`);
+		return res.status(200).send("OK");
+	});
+
 	router.get("/resume", async (req, res) => {
 		try {
 			loggingHelper.info("Processing /resume");
