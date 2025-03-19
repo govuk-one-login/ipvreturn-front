@@ -933,8 +933,10 @@ Resources:
         and a minimum of 2 errors in 5 out of the last 5 minutes
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
