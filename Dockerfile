@@ -1,4 +1,4 @@
-FROM node:20.18.1-alpine3.19@sha256:50209a555b1016096a415de2c055bc88dffb31b5afbca0ac237f027a41cbbe6e
+FROM node:23.3.0-alpine3.19@sha256:4ebaf825598cb2f47eb2a52c4a0badf800681b49064e9cae73d3ae7a31a7ee44
 WORKDIR /usr/index
 
 COPY . .
