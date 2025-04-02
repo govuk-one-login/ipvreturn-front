@@ -285,7 +285,7 @@ Resources:
       HealthCheckIntervalSeconds: 5
       HealthyThresholdCount: 2
       Matcher:
-        HttpCode: 200-499
+        HttpCode: "200"
       Port: 80
       Protocol: HTTP
       TargetType: ip
@@ -306,7 +306,7 @@ Resources:
       HealthCheckIntervalSeconds: 5
       HealthyThresholdCount: 2
       Matcher:
-        HttpCode: 200-499
+        HttpCode: "200"
       Port: 80
       Protocol: HTTP
       TargetType: ip
@@ -363,9 +363,11 @@ Resources:
           - UseCanaryDeployment
           - CODE_DEPLOY
           - ECS
-      DesiredCount: !FindInMap [EnvironmentVariables, !Ref Environment, minECSCount]
       EnableECSManagedTags: false
-      HealthCheckGracePeriodSeconds: 60
+      HealthCheckGracePeriodSeconds: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - 60
       LaunchType: FARGATE
       LoadBalancers: !If
         - UseCanaryDeployment
@@ -650,6 +652,83 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
+  # ECS Canary deployments
+  ECSCanaryDeploymentStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: UseCanaryDeployment
+    Properties:
+      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.eu-west-2.amazonaws.com/ecs-canary-deployment/template.yaml?versionId=5RRU1nfKQD_d08FKttr8W7pzrAsqQiUM
+      Parameters:
+        PermissionsBoundary:
+          Fn::ImportValue: !Sub "${AWS::StackName}-ECSCanaryPermissionsBoundaryArn"
+        CodeSigningConfigArn: !If
+          - UseCodeSigning
+          - !Ref CodeSigningConfigArn
+          - !Ref AWS::NoValue
+        ContainerName: app
+        ContainerPort: 8080
+        DeploymentStrategy: !Ref DeploymentStrategy
+        ECSClusterName: !Ref IPRFrontEcsCluster
+        ECSServiceName: !GetAtt IPRFrontEcsService.Name
+        ECSServiceTaskDefinition: !Ref ECSServiceTaskDefinition
+        TargetGroupName: !GetAtt LoadBalancerListenerTargetGroupECS.TargetGroupName
+        GreenTargetGroupName: !GetAtt LoadBalancerListenerTargetGroupECSGreen.TargetGroupName
+        LoadBalancerListenerARN: !Ref LoadBalancerListener
+        SecurityGroups: !GetAtt ECSSecurityGroup.GroupId
+        VpcId: !Sub ${VpcStackName}-VpcId
+        Subnets: !Join
+          - ","
+          - - Fn::ImportValue: !Sub "${VpcStackName}-ProtectedSubnetIdA"
+            - Fn::ImportValue: !Sub "${VpcStackName}-ProtectedSubnetIdB"
+        CloudWatchAlarms: !Sub
+          - "${FrontTargetGroup5xxPercentErrors}"
+          - FrontTargetGroup5xxPercentErrors: !Ref FrontTargetGroup5xxPercentErrors
+
+  FrontTargetGroup5xxPercentErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeployment
+    Properties:
+      AlarmName: FrontTargetGroup5xxPercentAlarm
+      AlarmDescription: >
+        The number of HTTP 5XX server error codes that originate from the
+        target group is greater than 5% of all traffic.
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: ErrorPercent
+          ReturnData: true
+          Expression: (m1/m2)*100
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApplicationELB
+              MetricName: HTTPCode_Target_5XX_Count
+              Dimensions:
+                - Name: LoadBalancer
+                  Value: !GetAtt LoadBalancer.LoadBalancerFullName
+            Period: 60
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApplicationELB
+              MetricName: RequestCount
+              Dimensions:
+                - Name: LoadBalancer
+                  Value: !GetAtt LoadBalancer.LoadBalancerFullName
+            Period: 60
+            Stat: Sum
+
   #
   # API Gateway
   #
@@ -796,26 +875,123 @@ Resources:
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
 
-  ECSAutoScalingPolicy:
-    Condition: EnableScaling
+  EcsStepScaleOutPolicy:
     DependsOn: ECSAutoScalingTarget
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: ECSAutoScalingPolicy
-      PolicyType: TargetTrackingScaling
+      PolicyName: EcsStepScalingOutPolicy
+      PolicyType: StepScaling
       ResourceId: !Join
-        - '/'
+        - "/"
         - - "service"
-          - !Ref   IPRFrontEcsCluster
+          - !Ref IPRFrontEcsCluster
           - !GetAtt IPRFrontEcsService.Name
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
-      TargetTrackingScalingPolicyConfiguration:
-        PredefinedMetricSpecification:
-          PredefinedMetricType: ECSServiceAverageCPUUtilization
-        TargetValue: 50.0
-        ScaleInCooldown: 0
-        ScaleOutCooldown: 0
+      StepScalingPolicyConfiguration:
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown:
+          180 # The policy will continue to respond to additional alarm breaches,
+          # even while a scaling activity is in progress. This means Application
+        # Auto Scaling will evaluate all alarm breaches as they occur.
+        # A cooldown period is used to protect against over-scaling due to
+        # multiple alarm breaches occurring in rapid succession.
+        MinAdjustmentMagnitude: 1
+        StepAdjustments:
+          - MetricIntervalUpperBound: 0 # 60%
+            ScalingAdjustment: 100 # Scale by 100% of containers if the metric is breached
+            # with <60% utilisation
+          - MetricIntervalLowerBound: 0 # 60%
+            MetricIntervalUpperBound: 30 # 90%
+            ScalingAdjustment: 200 # Scale by 200% of containers if the metric is breached
+            # with 80-90% utilisation
+          - MetricIntervalLowerBound: 30 # 90%
+            MetricIntervalUpperBound: 35 # 95%
+            ScalingAdjustment: 300 # Scale by 300% of containers if the metric is breached
+            # with 90-95% utilisation
+          - MetricIntervalLowerBound: 35 # 95%
+            ScalingAdjustment:
+              500 # Scale by 500% of containers if the metric is breached
+            # with >95% utilisation
+            # Note: CPU can scale greater than 100% in a burst mode
+            # on Fargate, so leave the upper bound open
+
+  EcsStepScaleInPolicy:
+    DependsOn: ECSAutoScalingTarget
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: EcsStepScalingInPolicy
+      PolicyType: StepScaling
+      ResourceId: !Join
+        - "/"
+        - - "service"
+          - !Ref IPRFrontEcsCluster
+          - !GetAtt IPRFrontEcsService.Name
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      StepScalingPolicyConfiguration:
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown:
+          180 # The policy will continue to respond to additional alarm breaches,
+          # even while a scaling activity is in progress. This means Application
+        # Auto Scaling will evaluate all alarm breaches as they occur.
+        # A cooldown period is used to protect against under-scaling due to
+        # multiple alarm breaches occurring in rapid succession.
+        StepAdjustments:
+          - MetricIntervalUpperBound: -15 # 5%
+            ScalingAdjustment: -90 # Scale down by 90% of containers if the metric is breached
+            # with <5% utilisation
+          - MetricIntervalLowerBound: -15 # 5%
+            MetricIntervalUpperBound: 0 # 20%
+            ScalingAdjustment:
+              -50 # Scale down 50% of containers if the metric is breached
+            # with <20% utilisation
+
+  EcsStepScaleOutAlarm:
+    DependsOn: ECSAutoScalingTarget
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref EcsStepScaleOutPolicy
+      AlarmDescription: "EcsClusterOver60PercentCPU"
+      ComparisonOperator: "GreaterThanThreshold"
+      DatapointsToAlarm: "1"
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref IPRFrontEcsCluster
+        - Name: ServiceName
+          Value: !GetAtt IPRFrontEcsService.Name
+      Unit: "Percent"
+      EvaluationPeriods: "1"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/ECS"
+      Statistic: "Average"
+      Period: "60"
+      Threshold: "60"
+
+  EcsStepScaleInAlarm:
+    DependsOn: ECSAutoScalingTarget
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref EcsStepScaleInPolicy
+      AlarmDescription: "EcsClusterUnder60PercentCPU"
+      ComparisonOperator: "LessThanThreshold"
+      DatapointsToAlarm: "5"
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref IPRFrontEcsCluster
+        - Name: ServiceName
+          Value: !GetAtt IPRFrontEcsService.Name
+      Unit: "Percent"
+      EvaluationPeriods: "5"
+      MetricName: "CPUUtilization"
+      Namespace: "AWS/ECS"
+      Statistic: "Average"
+      Period: "60"
+      Threshold: "20"
 
 ### Front End API Gateway Custom Domain definition
 
@@ -990,82 +1166,6 @@ Resources:
           Label: errorPercentage
           ReturnData: false
           Expression: (error/invocations)*100
-
-
-# ECS Canary deployments
-  ECSCanaryDeploymentStack:
-    Type: AWS::CloudFormation::Stack
-    Condition: UseCanaryDeployment
-    Properties:
-      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.eu-west-2.amazonaws.com/ecs-canary-deployment/template.yaml?versionId=5RRU1nfKQD_d08FKttr8W7pzrAsqQiUM
-      Parameters:
-        PermissionsBoundary:
-          Fn::ImportValue: !Sub "${AWS::StackName}-ECSCanaryPermissionsBoundaryArn"
-        CodeSigningConfigArn: !If
-          - UseCodeSigning
-          - !Ref CodeSigningConfigArn
-          - !Ref AWS::NoValue
-        ContainerName: app
-        ContainerPort: 8080
-        DeploymentStrategy: !Ref DeploymentStrategy
-        ECSClusterName: !Ref IPRFrontEcsCluster
-        ECSServiceName: !GetAtt IPRFrontEcsService.Name
-        ECSServiceTaskDefinition: !Ref ECSServiceTaskDefinition
-        TargetGroupName: !GetAtt LoadBalancerListenerTargetGroupECS.TargetGroupName
-        GreenTargetGroupName: !GetAtt LoadBalancerListenerTargetGroupECSGreen.TargetGroupName
-        LoadBalancerListenerARN: !Ref LoadBalancerListener
-        SecurityGroups: !GetAtt ECSSecurityGroup.GroupId
-        VpcId: !Sub ${VpcStackName}-VpcId
-        Subnets: !Join
-          - ","
-          - - Fn::ImportValue: !Sub "${VpcStackName}-ProtectedSubnetIdA"
-            - Fn::ImportValue: !Sub "${VpcStackName}-ProtectedSubnetIdB"
-        CloudWatchAlarms: !Ref FrontTargetGroup5xxPercentErrors
-
-  FrontTargetGroup5xxPercentErrors:
-    Type: AWS::CloudWatch::Alarm
-    Condition: UseCanaryDeployment
-    Properties:
-      AlarmName: FrontTargetGroup5xxPercentAlarm
-      AlarmDescription: >
-        The number of HTTP 5XX server error codes that originate from the
-        target group is greater than 5% of all traffic.
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 2
-      Threshold: 5
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: ErrorPercent
-          ReturnData: true
-          Expression: (m1/m2)*100
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApplicationELB
-              MetricName: HTTPCode_Target_5XX_Count
-              Dimensions:
-                - Name: LoadBalancer
-                  Value: !GetAtt LoadBalancer.LoadBalancerFullName
-            Period: 60
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApplicationELB
-              MetricName: RequestCount
-              Dimensions:
-                - Name: LoadBalancer
-                  Value: !GetAtt LoadBalancer.LoadBalancerFullName
-            Period: 60
-            Stat: Sum
 
   FE4XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
