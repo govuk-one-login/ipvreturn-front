@@ -42,5 +42,8 @@
     "axios": "1.8.2",
     "express": "^4.17.1",
     "winston": "^3.7.2"
+  },
+  "overrides": {
+    "form-data": ">=4.0.4"
   }
 }
