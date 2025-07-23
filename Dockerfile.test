@@ -3,7 +3,7 @@ FROM ubuntu:latest
 RUN apt update -y && apt upgrade -y
 RUN apt install -y curl unzip
 
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_22.x | bash -
 RUN apt-get update -qq && apt-get install -y npm nodejs
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
