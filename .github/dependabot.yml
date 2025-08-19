@@ -26,6 +26,8 @@ updates:
     labels:
     - dependabot
     ignore:
+      - dependency-name: "node"
+        versions: ["24.x"]
       - dependency-name: "arm64v8/node"
         versions: ["24.x"]
     commit-message:
