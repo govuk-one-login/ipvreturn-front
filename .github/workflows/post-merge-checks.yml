@@ -37,7 +37,7 @@ jobs:
         run: npm install
 
       - name: Run lint
-        run: npm lint
+        run: npm run lint
 
       - name: Run test and write coverage
         run: npm run test
