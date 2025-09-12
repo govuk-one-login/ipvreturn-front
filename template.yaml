@@ -350,47 +350,26 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref IPRFrontEcsCluster
-      DeploymentConfiguration: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - MaximumPercent: 200
-          MinimumHealthyPercent: 50
-          DeploymentCircuitBreaker:
-            Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
-            Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
       DeploymentController:
-        Type: !If
-          - UseCanaryDeployment
-          - CODE_DEPLOY
-          - ECS
+        Type: CODE_DEPLOY
       EnableECSManagedTags: false
-      HealthCheckGracePeriodSeconds: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - 60
+      HealthCheckGracePeriodSeconds: 60
       LaunchType: FARGATE
-      LoadBalancers: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - - ContainerName: app
-            ContainerPort: 8080
-            TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
-      NetworkConfiguration: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - AwsvpcConfiguration:
-            AssignPublicIp: DISABLED
-            SecurityGroups:
-              - !GetAtt ECSSecurityGroup.GroupId
-            Subnets:
-              - Fn::ImportValue:
-                  !Sub "${VpcStackName}-ProtectedSubnetIdA"
-              - Fn::ImportValue:
-                  !Sub "${VpcStackName}-ProtectedSubnetIdB"
-      TaskDefinition: !If
-        - UseCanaryDeployment
-        - !Ref AWS::NoValue
-        - !Ref ECSServiceTaskDefinition
+      LoadBalancers:
+        - ContainerName: app
+          ContainerPort: 8080
+          TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
+      NetworkConfiguration: 
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !GetAtt ECSSecurityGroup.GroupId
+          Subnets:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdB"
+      TaskDefinition: !Ref ECSServiceTaskDefinition
       Tags:
         - Key: Name
           Value: !Sub "${AWS::StackName}-ECS"
@@ -657,7 +636,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: UseCanaryDeployment
     Properties:
-      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.eu-west-2.amazonaws.com/ecs-canary-deployment/template.yaml?versionId=5RRU1nfKQD_d08FKttr8W7pzrAsqQiUM
+      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.amazonaws.com/ecs-canary-deployment/template.yaml
       Parameters:
         PermissionsBoundary:
           Fn::ImportValue: !Sub "${AWS::StackName}-ECSCanaryPermissionsBoundaryArn"
