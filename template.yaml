@@ -350,26 +350,47 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref IPRFrontEcsCluster
+      DeploymentConfiguration: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - MaximumPercent: 200
+          MinimumHealthyPercent: 50
+          DeploymentCircuitBreaker:
+            Enable: !If [EnableSpotArmInstance, FALSE, TRUE]
+            Rollback: !If [EnableSpotArmInstance, FALSE, TRUE]
       DeploymentController:
-        Type: CODE_DEPLOY
+        Type: !If
+          - UseCanaryDeployment
+          - CODE_DEPLOY
+          - ECS
       EnableECSManagedTags: false
-      HealthCheckGracePeriodSeconds: 60
+      HealthCheckGracePeriodSeconds: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - 60
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: app
-          ContainerPort: 8080
-          TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
-      NetworkConfiguration: 
-        AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
-          SecurityGroups:
-            - !GetAtt ECSSecurityGroup.GroupId
-          Subnets:
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-ProtectedSubnetIdA"
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-ProtectedSubnetIdB"
-      TaskDefinition: !Ref ECSServiceTaskDefinition
+      LoadBalancers: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - - ContainerName: app
+            ContainerPort: 8080
+            TargetGroupArn: !Ref LoadBalancerListenerTargetGroupECS
+      NetworkConfiguration: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - AwsvpcConfiguration:
+            AssignPublicIp: DISABLED
+            SecurityGroups:
+              - !GetAtt ECSSecurityGroup.GroupId
+            Subnets:
+              - Fn::ImportValue:
+                  !Sub "${VpcStackName}-ProtectedSubnetIdA"
+              - Fn::ImportValue:
+                  !Sub "${VpcStackName}-ProtectedSubnetIdB"
+      TaskDefinition: !If
+        - UseCanaryDeployment
+        - !Ref AWS::NoValue
+        - !Ref ECSServiceTaskDefinition
       Tags:
         - Key: Name
           Value: !Sub "${AWS::StackName}-ECS"
