@@ -3,7 +3,7 @@ WORKDIR /app
 COPY src ./src
 COPY package.json package-lock.json tsconfig.json run-tests.sh checkIpvResume.sh ./
 
-RUN npm install
+RUN npm ci
 RUN npm run build
 
 # to build the app. So delete node_modules and reinstall only production packages.
