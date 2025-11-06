@@ -2,8 +2,8 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "frontend-main-dev"
-s3_prefix = "frontend-main-dev"
+stack_name = "ipvreturn-front"
+s3_prefix = "ipvreturn-front"
 region = "eu-west-2"
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc-cri\""

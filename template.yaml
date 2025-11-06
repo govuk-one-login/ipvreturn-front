@@ -657,7 +657,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: UseCanaryDeployment
     Properties:
-      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.eu-west-2.amazonaws.com/ecs-canary-deployment/template.yaml?versionId=5RRU1nfKQD_d08FKttr8W7pzrAsqQiUM
+      TemplateURL: https://template-storage-templatebucket-1upzyw6v9cs42.s3.amazonaws.com/ecs-canary-deployment/template.yaml
       Parameters:
         PermissionsBoundary:
           Fn::ImportValue: !Sub "${AWS::StackName}-ECSCanaryPermissionsBoundaryArn"
@@ -876,6 +876,7 @@ Resources:
       ServiceNamespace: ecs
 
   EcsStepScaleOutPolicy:
+    Condition: EnableScaling
     DependsOn: ECSAutoScalingTarget
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
@@ -917,6 +918,7 @@ Resources:
             # on Fargate, so leave the upper bound open
 
   EcsStepScaleInPolicy:
+    Condition: EnableScaling
     DependsOn: ECSAutoScalingTarget
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
@@ -948,6 +950,7 @@ Resources:
             # with <20% utilisation
 
   EcsStepScaleOutAlarm:
+    Condition: EnableScaling
     DependsOn: ECSAutoScalingTarget
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -971,6 +974,7 @@ Resources:
       Threshold: "60"
 
   EcsStepScaleInAlarm:
+    Condition: EnableScaling
     DependsOn: ECSAutoScalingTarget
     Type: AWS::CloudWatch::Alarm
     Properties:
