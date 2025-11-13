@@ -1,4 +1,4 @@
-FROM --platform="linux/arm64" arm64v8/node:22.16.0-alpine3.21@sha256:7c87671b1ac873bd4b01638792262cd5bd318a8dd5145914c4754802515c4f66
+FROM --platform="linux/arm64" arm64v8/node:25.2.0-alpine3.21@sha256:84001b5b24c127b42f6063cff50859e7a80d1e4a8c19f9506b33e20a1a7d3e72
 
 WORKDIR /usr/index
 
