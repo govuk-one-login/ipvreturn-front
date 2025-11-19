@@ -37,11 +37,11 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@aws-sdk/lib-dynamodb": "^3.574.0",
-    "@govuk-one-login/frontend-passthrough-headers": "^1.0.0",
+    "@aws-sdk/lib-dynamodb": "3.574.0",
+    "@govuk-one-login/frontend-passthrough-headers": "1.0.0",
     "axios": "1.13.2",
-    "express": "^4.17.1",
-    "winston": "^3.7.2"
+    "express": "4.17.1",
+    "winston": "3.7.2"
   },
   "overrides": {
     "form-data": ">=4.0.4"
