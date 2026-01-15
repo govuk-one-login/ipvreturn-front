@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.2.0/schemas/schema.json",
   "services": [
     {
-      "service-tag": "cic-front",
+      "service-tag": "ipr-front",
       "quality-gates": [
         {
           "check-types": ["code style and linting"],
