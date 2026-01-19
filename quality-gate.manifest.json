@@ -5,7 +5,7 @@
       "service-tag": "ipr-front",
       "quality-gates": [
         {
-          "check-types": ["code style and linting"],
+          "check-types": ["code style and linting", "secret scanning"],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
@@ -27,7 +27,7 @@
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
-            "file": ".github/workflows/pull-requet-sonar.yml",
+            "file": ".github/workflows/pull-request-sonar.yml",
             "path": "jobs.run-tests"
           }
         }
