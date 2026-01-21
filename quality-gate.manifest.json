@@ -14,7 +14,7 @@
           }
         },
         {
-          "check-types": ["code style and linting", "unit"],
+          "check-types": ["code style and linting", "unit", "unit test coverage"],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
@@ -23,12 +23,20 @@
           }
         },
         {
-          "check-types": ["code style and linting", "unit"],
+          "check-types": ["code style and linting", "unit", "unit test coverage"],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
             "file": ".github/workflows/pull-request-sonar.yml",
             "path": "jobs.run-tests"
+          }
+        },
+        {
+          "check-types": ["vulnerability detection"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/dependabot.yml"
           }
         }
       ]
