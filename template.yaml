@@ -121,7 +121,7 @@ Mappings:
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
-      minECSCount: 6
+      minECSCount: 2
       maxECSCount: 60
     staging:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
