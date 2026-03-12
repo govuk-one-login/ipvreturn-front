@@ -23,10 +23,12 @@ describe("ReturnService test", () => {
 	});
 
 	it("successfully deletes session", async () => {
+		const testLoggingHelper = jest.spyOn(loggingHelper, 'info');
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-		await returnService.createSession();
-		const actualResult = await returnService.deleteSession("test");
+		const state = await returnService.createSession();
+		const actualResult = await returnService.deleteSession(state);
 		expect(actualResult).toEqual(undefined);
-		expect(loggingHelper.info).toHaveBeenCalled;
+		expect(testLoggingHelper).toHaveBeenNthCalledWith(1, "Creating session record in dynamodb");
+		expect(testLoggingHelper).toHaveBeenNthCalledWith(3, "Deleting session record in dynamodb");
 	});
 });
