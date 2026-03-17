@@ -13,10 +13,8 @@ index.get("/healthcheck", (req, res) => {
 
 Routes.register(index);
 
-if (process.env.NODE_ENV !== 'test') {
-  index.listen(EnvironmentVariables.getPort(), () => {
-	  return loggingHelper.info(`IPV Return app listening at http://${EnvironmentVariables.getFrontEndDomain()}:${EnvironmentVariables.getPort()}`);
-  });
-}
+index.listen(EnvironmentVariables.getPort(), () => {
+	return loggingHelper.info(`IPV Return app listening at http://${EnvironmentVariables.getFrontEndDomain()}:${EnvironmentVariables.getPort()}`);
+});
 
 export default index;
