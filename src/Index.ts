@@ -17,5 +17,4 @@ index.listen(EnvironmentVariables.getPort(), () => {
 	return loggingHelper.info(`IPV Return app listening at http://${EnvironmentVariables.getFrontEndDomain()}:${EnvironmentVariables.getPort()}`);
 });
 
-
 export default index;
