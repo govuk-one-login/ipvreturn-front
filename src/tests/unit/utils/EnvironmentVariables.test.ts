@@ -9,18 +9,17 @@ describe("EnvironmentVariables", () => {
 	});
 
 
-	it("should return the value of PORT if this.PORT", () => {
+	it("should return the value of PORT if this.PORT has a value", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
 		const value = EnvironmentVariables.getPort();
 		expect(value).toBe(8080);
 	});
 
-	it("should return the value of PORT if !this.PORT", () => {
+	it("should return the value of PORT if this.PORT does not have a value", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
 		EnvironmentVariables.PORT = undefined;
 		const value = EnvironmentVariables.getPort();
 		expect(value).toBe(8080);
-		expect(loggingHelper).toHaveBeenCalled;
 	});
 
 	it("should throw an error if API_BASE_URL is not provided", () => {

@@ -1,22 +1,19 @@
 import { ReturnService } from "../../../services/ReturnService";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
-import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import { SSMClient } from "@aws-sdk/client-ssm";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import { loggingHelper } from "../../../utils/LoggingHelper";
-import { AppError } from "../../../utils/AppError";
-import { rejects } from "node:assert";
 
 let returnService: ReturnService;
 
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockSsmClient = jest.mocked(new SSMClient({ region: "test"}));
-
+const mockSSMClient = jest.mocked(new SSMClient({ region: 'test' }));
 
 describe("ReturnService test", () => {
 
 	beforeAll(() => {
 		// @ts-ignore
-		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
+		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient, mockSSMClient);
 	});
 
 	it("successfully saves session", async () => {
@@ -54,4 +51,9 @@ describe("ReturnService test", () => {
 		expect(testLoggingHelperInfo).toHaveBeenNthCalledWith(3, "Deleting session record in dynamodb");
 		expect(testLoggingHelperError).toHaveBeenNthCalledWith(1, "got error saving Access token details", {"error": {}});
 	});
+
+	it("throws error when getParameter response contains no parameter", async () => {
+		mockSSMClient.send = jest.fn().mockResolvedValueOnce({});
+		await expect(returnService.getParameter('test')).rejects.toThrow("Parameter not found")
+	})
 });

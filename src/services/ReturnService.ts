@@ -11,28 +11,32 @@ export class ReturnService {
 
     private readonly dynamo: DynamoDBDocument;
 
+	private readonly ssmClient: SSMClient;
+
     private static instance: ReturnService;
 
-    private constructor(tableName: any, dynamoDbClient: DynamoDBDocument) {
+    private constructor(tableName: any, dynamoDbClient: DynamoDBDocument, ssmClient: SSMClient) {
     	this.tableName = tableName;
     	this.dynamo = dynamoDbClient;
+		this.ssmClient = ssmClient;
     }
 
-    static getInstance(tableName: string, dynamoDbClient: DynamoDBDocument): ReturnService {
+    static getInstance(tableName: string, dynamoDbClient: DynamoDBDocument, ssmClient: SSMClient): ReturnService {
     	if (!ReturnService.instance) {
-    		ReturnService.instance = new ReturnService(tableName, dynamoDbClient);
+    		ReturnService.instance = new ReturnService(tableName, dynamoDbClient, ssmClient);
     	}
     	return ReturnService.instance;
     }
 
 
     async getParameter(path: string): Promise<string> {
-    	const client = new SSMClient({ region: process.env.REGION });
-    	const command = new GetParameterCommand({ Name: path });
-    	const response = await client.send(command);
+		const command = new GetParameterCommand({ Name: path });
+		const response = await this.ssmClient.send(command);
 
     	if (response.Parameter == null) { throw new Error("Parameter not found"); }
+
     	if (response.Parameter.Value == null) { throw new Error("Parameter is null"); }
+
     	return response.Parameter.Value;
     }
 
