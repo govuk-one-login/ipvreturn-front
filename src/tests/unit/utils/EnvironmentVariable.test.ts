@@ -1,5 +1,5 @@
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
+import { loggingHelper } from "../../../utils/LoggingHelper";
 
 describe("EnvironmentVariables", () => {
 	beforeEach(() => {
@@ -9,8 +9,15 @@ describe("EnvironmentVariables", () => {
 	});
 
 
-	it("should return the value of PORT", () => {
+	it("should return the value of PORT if this.PORT has a value", () => {
 		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
+		const value = EnvironmentVariables.getPort();
+		expect(value).toBe(8080);
+	});
+
+	it("should return the value of PORT if this.PORT does not have a value", () => {
+		const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
+		EnvironmentVariables.PORT = undefined;
 		const value = EnvironmentVariables.getPort();
 		expect(value).toBe(8080);
 	});
