@@ -7,6 +7,7 @@ import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
+import { SSMClient } from "@aws-sdk/client-ssm";
 
 export class ReturnController {
 
@@ -17,7 +18,7 @@ export class ReturnController {
     private readonly iprService: ReturnService;
 
     constructor(tableName: string, dynamoDbClient: DynamoDBDocument) {
-    	this.iprService = ReturnService.getInstance(tableName, dynamoDbClient);
+    	this.iprService = ReturnService.getInstance(tableName, dynamoDbClient, new SSMClient({ region: process.env.REGION }));
     }
 
     static getInstance(): ReturnController {
