@@ -7,7 +7,6 @@ import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
-import { SSMClient } from "@aws-sdk/client-ssm";
 
 export class ReturnController {
 
