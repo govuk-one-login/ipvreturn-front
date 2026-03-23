@@ -4,17 +4,29 @@ import { SSMClient } from "@aws-sdk/client-ssm";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import { loggingHelper } from "../../../utils/LoggingHelper";
 
-let returnService: ReturnService;
+jest.mock('@aws-sdk/client-ssm', () => ({
+	SSMClient: jest.fn(() => ({
+		send: jest.fn()
+	})),
+	GetParameterCommand: jest.fn()
+}));
+
+const MockedSSMClient = SSMClient as jest.Mock;
+const mockSend = jest.fn();
+
+MockedSSMClient.mockImplementation(() => ({
+	send: mockSend
+}));
 
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockSSMClient = jest.mocked(new SSMClient({ region: 'test' }));
+
+let returnService: ReturnService;
 
 describe("ReturnService test", () => {
 
 	beforeAll(() => {
-
 		// @ts-ignore
-		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient, mockSSMClient);
+		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
 	});
 
 	it("successfully saves session", async () => {
@@ -55,7 +67,20 @@ describe("ReturnService test", () => {
 	});
 
 	it("throws error when getParameter response contains no parameter", async () => {
-		mockSSMClient.send = jest.fn().mockResolvedValueOnce({});
-		await expect(returnService.getParameter('test')).rejects.toThrow("Parameter not found")
-	})
+		mockSend.mockResolvedValueOnce({
+  			Parameter: null
+		});
+		
+		await expect(returnService.getParameter('test')).rejects.toThrow("Parameter not found");
+	});
+
+	it("throws error when getParameter response.Parameter is null", async () => {
+		mockSend.mockResolvedValueOnce({
+  			Parameter: {
+				Value: null
+			}
+		});
+
+		await expect(returnService.getParameter('test')).rejects.toThrow("Parameter is null");
+	});
 });

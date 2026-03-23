@@ -18,7 +18,7 @@ export class ReturnController {
     private readonly iprService: ReturnService;
 
     constructor(tableName: string, dynamoDbClient: DynamoDBDocument) {
-    	this.iprService = ReturnService.getInstance(tableName, dynamoDbClient, new SSMClient({ region: process.env.REGION }));
+    	this.iprService = ReturnService.getInstance(tableName, dynamoDbClient);
     }
 
     static getInstance(): ReturnController {
