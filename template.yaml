@@ -980,7 +980,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref EcsStepScaleInPolicy
-      AlarmDescription: "EcsClusterUnder60PercentCPU"
+      AlarmDescription: "EcsClusterUnder30PercentCPU"
       ComparisonOperator: "LessThanThreshold"
       DatapointsToAlarm: "5"
       Dimensions:
@@ -994,7 +994,7 @@ Resources:
       Namespace: "AWS/ECS"
       Statistic: "Average"
       Period: "60"
-      Threshold: "20"
+      Threshold: "30"
 
 ### Front End API Gateway Custom Domain definition
 
