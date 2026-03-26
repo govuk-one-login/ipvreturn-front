@@ -54,7 +54,6 @@ export class EnvironmentVariables {
 		return this.DISCOVERY_ENDPOINT;
 	}
 
-
 	static getSessionTableName(): string {
 		if (!this.SESSION_TABLE_NAME || this.SESSION_TABLE_NAME.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Session table name ${EnvironmentVariables.name}`);
@@ -64,6 +63,7 @@ export class EnvironmentVariables {
 	}
 
 	static getSessionTtlInSecs(): number {
+		console.log("333",this.SESSION_TTL_IN_SECS );
 		if (!this.SESSION_TTL_IN_SECS) {
 			this.SESSION_TTL_IN_SECS = 300;
 			loggingHelper.warn("SESSION_TTL_IN_SECS env var is not set. Setting to default - 5 mins.");

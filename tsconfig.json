@@ -11,8 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./build/",
-    "module": "commonjs",
-    "typeRoots": ["./node_modules/@types"]
+    "module": "commonjs"
   },
   "exclude": ["node_modules"]
 }
