@@ -30,7 +30,6 @@ export const register = ( router: express.Application ) => {
 			loggingHelper.info("Redirecting to accounts dashboard");
 			res.redirect(EnvironmentVariables.getAccountsDashboardUrl());
 		}
-
 	});
 
 	//For any other paths, redirect to /resume
