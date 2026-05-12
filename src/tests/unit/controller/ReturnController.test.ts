@@ -34,6 +34,10 @@ describe("returnController test", () => {
 
 	});
 
+	it("returns an instance of returnController", async () => {
+		expect(returnCtrl).toBeInstanceOf(ReturnController);
+	});
+
 	it("returns a redirectUrl", async () => {
 		const actualResult = await returnCtrl.handleResumeReturnAuthUrl();
 		const nonce = (actualResult ).split("nonce=", actualResult.length);

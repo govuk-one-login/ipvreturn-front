@@ -54,7 +54,6 @@ export class EnvironmentVariables {
 		return this.DISCOVERY_ENDPOINT;
 	}
 
-
 	static getSessionTableName(): string {
 		if (!this.SESSION_TABLE_NAME || this.SESSION_TABLE_NAME.trim().length === 0) {
 			loggingHelper.error(`Misconfigured Session table name ${EnvironmentVariables.name}`);
