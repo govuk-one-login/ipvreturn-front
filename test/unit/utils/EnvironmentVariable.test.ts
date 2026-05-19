@@ -1,6 +1,6 @@
-import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import { HttpCodesEnum } from "../../../src/utils/HttpCodesEnum";
 const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
-import { loggingHelper } from "../../../utils/LoggingHelper";
+import { loggingHelper } from "../../../src/utils/LoggingHelper";
 
 describe("EnvironmentVariables", () => {
 	beforeEach(() => {

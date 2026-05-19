@@ -1,9 +1,9 @@
 /* eslint-disable max-lines-per-function */
-import { ReturnController } from "../../../controller/ReturnController";
+import { ReturnController } from "../../../src/controller/ReturnController";
 import { mock } from "jest-mock-extended";
-import { ReturnService } from "../../../services/ReturnService";
-import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
-import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
+import { ReturnService } from "../../../src/services/ReturnService";
+import { createDynamoDbClient } from "../../../src/utils/DynamoDBFactory";
+import { EnvironmentVariables } from "../../../src/utils/EnvironmentVariables";
 import axios from "axios";
 
 let returnCtrl: ReturnController;

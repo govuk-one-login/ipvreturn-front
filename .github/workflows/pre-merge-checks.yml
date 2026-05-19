@@ -1,0 +1,76 @@
+name: Pre-merge checks
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  push:
+    branches: [main]
+
+jobs:
+  run-checks:
+    runs-on: ubuntu-latest
+    steps:
+       - name: Checkout
+         uses: actions/checkout@v6
+       - name: Checks if commiting secrets to repo
+         uses: pre-commit/action@v3.0.1
+         with:
+           extra_args: "detect-secrets --all-files"
+       - name: Setup nodeJS v22
+         uses: actions/setup-node@v6
+         with:
+           node-version: 22
+       - name: Install dependencies
+         run: npm ci
+       - name: Run lint
+         run: npm run lint
+       - name: Run build
+         run: npm run build
+       - name: Run test and write coverage
+         run: npm run test
+       - name: Install Playwright browsers
+         run: yarn playwright install --with-deps
+       - name: Run browser tests
+         run: npm run test:browser:ci
+         env: 
+           REDIRECT_URL: http://localhost:8080/callback
+           DISCOVERY_ENDPOINT: http://localhost:8080
+           SESSION_TABLE_NAME: IPR-front-sessions-dev-ipvreturn-front
+           CLIENT_ID_SSM_PATH: /dev/ipvreturn/CLIENT_ID
+           PORT: 8080
+           FRONT_END_CUSTOM_DOMAIN: localhost
+           API_BASE_URL: http://localhost:8030
+           ACCOUNTS_DASHBOARD: https://home.staging.account.gov.uk/
+           USE_MOCKED: true
+           /dev/ipvreturn/CLIENT_ID: ${{ secrets.IPV_RETURN_CLIENT_ID }}
+           STUBBED_ENVRONMENT: true
+           NODE_ENV: development
+       - name: Archive browser tests results
+         uses: actions/upload-artifact@v7
+         with:
+          name: browser-tests-report
+          path: test/reports/ipr-reports/
+
+  sonar-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: '0'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Run lint
+        run: npm run lint
+      - name: Run build
+        run: npm run build
+      - name: Run test and write coverage
+        run: npm run test
+      - name: Run SonarCloud Scan
+        if: success() && github.actor != 'dependabot[bot]'
+        uses: SonarSource/sonarqube-scan-action@v8.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

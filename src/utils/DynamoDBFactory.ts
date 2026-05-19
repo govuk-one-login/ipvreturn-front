@@ -1,21 +1,21 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { fromEnv } from "@aws-sdk/credential-providers";
 
 const awsRegion = process.env.AWS_REGION;
 export const createDynamoDbClient = () => {
 	const marshallOptions = {
-		// Whether to automatically convert empty strings, blobs, and sets to `null`.
 		convertEmptyValues: false,
-		// Whether to remove undefined values while marshalling.
 		removeUndefinedValues: true,
-		// Whether to convert typeof object to map attribute.
 		convertClassInstanceToMap: true,
 	};
 	const unmarshallOptions = {
-		// Whether to return numbers as a string instead of converting them to native JavaScript numbers.
 		wrapNumbers: false,
 	};
 	const translateConfig = { marshallOptions, unmarshallOptions };
-	const dbClient = new DynamoDBClient({ region: awsRegion });
-	return DynamoDBDocument.from(dbClient, translateConfig);
+	const useMocks = process.env.USE_MOCKED === "true";
+	const endpoint = useMocks ? "http://localhost:8000" : undefined;
+	const dbClient = new DynamoDBClient({ region: awsRegion, endpoint });
+	const dbClientRaw = DynamoDBDocument.from(dbClient, translateConfig);
+	return dbClientRaw;
 };

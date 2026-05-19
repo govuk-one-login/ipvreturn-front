@@ -1,6 +1,6 @@
-import app from "../../App";
+import app from "../../src/App";
 import { mock } from "jest-mock-extended";
-import { ReturnController } from "../../controller/ReturnController";
+import { ReturnController } from "../../src/controller/ReturnController";
 
 const request = require('supertest')
 
