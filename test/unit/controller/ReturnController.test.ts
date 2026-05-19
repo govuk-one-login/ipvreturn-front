@@ -9,11 +9,16 @@ import axios from "axios";
 let returnCtrl: ReturnController;
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockedreturnService = mock<ReturnService>();
-const defaultMockRequest = { headers: {} };
+
 let redirectToDashboardSpy: any;
 jest.mock("axios");
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+const defaultMockRequest = { 
+	headers: {},
+	axios: mockedAxios
+};
 
 const mockResponse: any = {
 	json: jest.fn(),

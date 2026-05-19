@@ -17,8 +17,9 @@ export default [{
         "**/node_modules",
         "**/.aws-sam",
         "**/dist",
+        "**/build",
         "**/reports/",
-        "tests/infra/**/*",
+        "test/infra/**/*",
     ],
 }, ...compat.extends("eslint:recommended", "prettier"), {
     languageOptions: {

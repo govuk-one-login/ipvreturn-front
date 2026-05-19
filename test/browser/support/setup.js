@@ -4,9 +4,10 @@ const { setDefaultTimeout } = require("@cucumber/cucumber");
 const axios = require("axios");
 
 setDefaultTimeout(10 * 1000);
+require("dotenv").config();
 
 BeforeAll(async function () {
-  require("dotenv").config();
+
   // Browsers are expensive in Playwright so only create 1
   global.browser = process.env.GITHUB_ACTIONS
     ? await chromium.launch()

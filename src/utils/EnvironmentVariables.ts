@@ -2,6 +2,7 @@ import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { Constants } from "./Constants";
 import { loggingHelper } from "./LoggingHelper";
+require("dotenv").config();
 
 /**
  * Class to read, store, and return environment variables

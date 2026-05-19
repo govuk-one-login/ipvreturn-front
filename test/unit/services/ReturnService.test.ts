@@ -23,6 +23,7 @@ let returnService: ReturnService;
 describe("ReturnService test", () => {
 
 	beforeAll(() => {
+		process.env.USE_MOCKED = "false";
 		// @ts-ignore
 		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
 	});

@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import axios, { AxiosInstance } from "axios";
 import userIpAddress from "./user-ip-address";
+import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 
 export default function axiosMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const baseURL = process.env.API_BASE_URL;
+  const baseURL = EnvironmentVariables.getApiBaseUrl();
 
   if (!baseURL) {
     return next(new Error("Missing API.BASE_URL value"));

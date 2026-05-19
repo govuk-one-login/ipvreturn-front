@@ -15,14 +15,14 @@ export default {
   collectCoverage: true,
   collectCoverageFrom: [
     './**/*.ts',
-    '!./**/tests/**/*.ts',
-    '!./tests/**/*.ts',
+    '!./**/test/**/*.ts',
+    '!./test/**/*.ts',
     '!./jest.config.ts'
   ],
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
   coveragePathIgnorePatterns: ['config.ts', 'node_modules/'],
-  testMatch: ['**/tests/**/*.test.ts'],
+  testMatch: ['**/test/**/*.test.ts'],
   setupFiles: [
     './jest.setup.ts'
   ],
