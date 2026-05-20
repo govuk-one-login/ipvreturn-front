@@ -27,6 +27,9 @@ export class EnvironmentVariables {
 
 	private static readonly ACCOUNTS_DASHBOARD = process.env.ACCOUNTS_DASHBOARD;
 
+	private static readonly STUBBED_ENVIRONMENT = process.env.STUBBED_ENVIRONMENT;
+
+
 	/**
 	 * Accessor methods for env variable values
 	 */
@@ -101,6 +104,14 @@ export class EnvironmentVariables {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.ACCOUNTS_DASHBOARD;
+	}
+
+	static getStubbedEnvironmentFlag(): string {
+		if (!this.STUBBED_ENVIRONMENT	|| this.STUBBED_ENVIRONMENT.trim().length === 0) {
+			loggingHelper.error(`Stubbed flag ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.STUBBED_ENVIRONMENT;
 	}
 
 

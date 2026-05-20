@@ -43,7 +43,7 @@ jobs:
            ACCOUNTS_DASHBOARD: https://home.staging.account.gov.uk/
            USE_MOCKED: "true"
            /dev/ipvreturn/CLIENT_ID: ${{ secrets.IPV_RETURN_CLIENT_ID }}
-           STUBBED_ENVRONMENT: "true"
+           STUBBED_ENVIRONMENT: "true"
            NODE_ENV: development
            AWS_ACCESS_KEY_ID: dummy 
            AWS_SECRET_ACCESS_KEY: dummy #pragma: allowlist secret

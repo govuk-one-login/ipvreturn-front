@@ -29,6 +29,7 @@ export const register = ( router: express.Application ) => {
 
 			res.redirect(authorizeUrl);
 		} catch (e) {
+			//potential bug no redirect here
 			loggingHelper.error("Received unexpected error handling /resume", { "error": e });
 		}
 	});
@@ -44,15 +45,15 @@ export const register = ( router: express.Application ) => {
 		}
 	});
 
-	if (process.env.STUBBED_ENVRONMENT === "true" ) {
+	if (EnvironmentVariables.getStubbedEnvironmentFlag() === "true" ) {
 		router.get("/authorize", async (req, res): Promise<void> => {
 			loggingHelper.debug("Stubbed auth");
 			res.redirect("/callback?code=H8ejrfFxcfg3Bq-WAK-3kMDpWsTQBB2zmEUpE7NumZ2&state=098a402d-1b8d-421e-88f5-f5db0d6728d8");
 		});
 		router.get("/rp", async (req, res): Promise<void> => {
 			loggingHelper.debug("Stubbed RP");
-			res.type('text/plain');
-			res.send('Stubbed RP');
+			res.type("text/plain");
+			res.send("Stubbed RP");
 		});
 	}
 

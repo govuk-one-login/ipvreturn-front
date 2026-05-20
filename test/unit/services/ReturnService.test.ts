@@ -23,6 +23,11 @@ let returnService: ReturnService;
 describe("ReturnService test", () => {
 
 	beforeAll(() => {
+		// @ts-ignore
+		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
+	});
+
+	beforeEach(() => {
 		process.env.USE_MOCKED = "false";
 		// @ts-ignore
 		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
@@ -36,6 +41,16 @@ describe("ReturnService test", () => {
 					Value: expectedValue
 				}
 			});
+			const result = await returnService.getParameter('test');
+			expect(result).toBe(expectedValue);
+		});
+
+		it("returns the env var not SSM parameter value when using mocks", async () => {
+			process.env.USE_MOCKED = "true";
+
+			const expectedValue = "some-secret-value";
+			process.env["test"] = expectedValue
+
 			const result = await returnService.getParameter('test');
 			expect(result).toBe(expectedValue);
 		});
