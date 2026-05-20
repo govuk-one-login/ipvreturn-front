@@ -1,0 +1,16 @@
+{
+  "IPR-front-sessions-dev-ipvreturn-front": [
+    {
+      "PutRequest": {
+        "Item": {
+            "expiryDate": {
+              "N": "1778835435"
+            },
+            "state": {
+              "S": "84663380-c0bb-4bb9-89fb-b367f673b38a"
+            }
+          }
+        }
+      }
+  ]
+}

@@ -110,6 +110,7 @@ Mappings:
       REDIRECTURL: "https://ipvreturn-front.return.dev.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://ipr-oidc-stub-oidcstub.return.dev.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+      STUBBEDENVIRONMENT: true
       minECSCount: 1
       maxECSCount: 4
     build:
@@ -121,6 +122,7 @@ Mappings:
       REDIRECTURL: "https://return.build.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://ipr-oidc-stub-oidcstub.return.build.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+      STUBBEDENVIRONMENT: true
       minECSCount: 6
       maxECSCount: 60
     staging:
@@ -132,6 +134,7 @@ Mappings:
       REDIRECTURL: "https://return.staging.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.staging.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
+      STUBBEDENVIRONMENT: false
       minECSCount: 2
       maxECSCount: 4
     integration:
@@ -143,6 +146,7 @@ Mappings:
       REDIRECTURL: "https://return.integration.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.integration.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.integration.account.gov.uk"
+      STUBBEDENVIRONMENT: false
       minECSCount: 2
       maxECSCount: 4
     production:
@@ -154,6 +158,7 @@ Mappings:
       REDIRECTURL: "https://return.account.gov.uk/callback"
       DISCOVERYENDPOINT: "https://oidc.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.account.gov.uk"
+      STUBBEDENVIRONMENT: false
       minECSCount: 6
       maxECSCount: 60
 
@@ -493,6 +498,8 @@ Resources:
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
             - Name: CLIENT_ID_SSM_PATH
               Value: !Sub "/${Environment}/ipvreturn/CLIENT_ID"
+            - Name: STUBBED_ENVIRONMENT
+              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, STUBBEDENVIRONMENT ]
           Secrets:
             - Name: DT_TENANT
               ValueFrom: !Join

@@ -1,6 +1,6 @@
-import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-const { EnvironmentVariables } = require("../../../utils/EnvironmentVariables");
-import { loggingHelper } from "../../../utils/LoggingHelper";
+import { EnvironmentVariables } from "../../../src/utils/EnvironmentVariables";
+import { HttpCodesEnum } from "../../../src/utils/HttpCodesEnum";
+import { loggingHelper } from "../../../src/utils/LoggingHelper";
 
 describe("EnvironmentVariables", () => {
 	beforeEach(() => {
@@ -16,6 +16,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if REDIRECT_URL is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.REDIRECT_URL = undefined;
 		expect(() => EnvironmentVariables.getRedirectUrl()).toThrow(
 			expect.objectContaining({
@@ -32,6 +33,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if CLIENT_ID_SSM_PATH is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.CLIENT_ID_SSM_PATH = undefined;
 		expect(() => EnvironmentVariables.getClientIdSsmPath()).toThrow(
 			expect.objectContaining({
@@ -48,6 +50,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if DISCOVERY_ENDPOINT is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.DISCOVERY_ENDPOINT = undefined;
 		expect(() => EnvironmentVariables.getDiscoveryEndpoint()).toThrow(
 			expect.objectContaining({
@@ -64,6 +67,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if SESSION_TABLE_NAME is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.SESSION_TABLE_NAME = undefined;
 		expect(() => EnvironmentVariables.getSessionTableName()).toThrow(
 			expect.objectContaining({
@@ -80,6 +84,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should assign default SESSION_TTL_IN_SECS if it does not have a value", () => {
+		// @ts-ignore
 		EnvironmentVariables.SESSION_TTL_IN_SECS = undefined;
 		const value = EnvironmentVariables.getSessionTtlInSecs();
 		expect(value).toBe(300);
@@ -92,6 +97,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should assign default FRONT_END_CUSTOM_DOMAIN if it does not have a value", () => {
+		// @ts-ignore
 		EnvironmentVariables.FRONT_END_CUSTOM_DOMAIN = undefined;
 		const value = EnvironmentVariables.getFrontEndDomain();
 		expect(value).toBe("localhost");
@@ -104,6 +110,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should assign default PORT if it does not have a value", () => {
+		// @ts-ignore
 		EnvironmentVariables.PORT = undefined;
 		const value = EnvironmentVariables.getPort();
 		expect(value).toBe(8080);
@@ -116,6 +123,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if API_BASE_URL is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.API_BASE_URL = undefined;
 		expect(() => EnvironmentVariables.getApiBaseUrl()).toThrow(
 			expect.objectContaining({
@@ -132,6 +140,7 @@ describe("EnvironmentVariables", () => {
 	});
 
 	it("should throw an error if ACCOUNTS_DASHBOARD is not provided", () => {
+		// @ts-ignore
 		EnvironmentVariables.ACCOUNTS_DASHBOARD = undefined;
 		expect(() => EnvironmentVariables.getAccountsDashboardUrl()).toThrow(
 			expect.objectContaining({

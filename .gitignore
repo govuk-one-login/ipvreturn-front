@@ -4,3 +4,6 @@ dist/
 reports/
 build/
 .DS_Store
+.env
+logs.txt
+.vscode/*
