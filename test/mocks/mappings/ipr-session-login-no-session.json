@@ -1,0 +1,29 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/__reset/ipr-login-no-session"
+      },
+      "response": {
+        "status": 200
+      },
+      "scenarioName": "ipr-login-no-session"
+    },
+    {
+      "request": {
+        "headers": {
+          "x-scenario-id": {
+            "equalTo": "ipr-login-no-session"
+          }
+        },
+        "method": "GET",
+        "urlPath": "/session"
+      },
+      "response": {
+        "status": 401
+      },
+      "scenarioName": "ipr-login-no-session"
+    }
+  ]
+}

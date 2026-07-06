@@ -1,8 +1,8 @@
-import { ReturnService } from "../../../services/ReturnService";
-import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
+import { ReturnService } from "../../../src/services/ReturnService";
+import { createDynamoDbClient } from "../../../src/utils/DynamoDBFactory";
 import { SSMClient } from "@aws-sdk/client-ssm";
-import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
-import { loggingHelper } from "../../../utils/LoggingHelper";
+import { EnvironmentVariables } from "../../../src/utils/EnvironmentVariables";
+import { loggingHelper } from "../../../src/utils/LoggingHelper";
 
 jest.mock('@aws-sdk/client-ssm', () => ({
 	SSMClient: jest.fn(),
@@ -27,6 +27,12 @@ describe("ReturnService test", () => {
 		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
 	});
 
+	beforeEach(() => {
+		process.env.USE_MOCKED = "false";
+		// @ts-ignore
+		returnService = new ReturnService(EnvironmentVariables.getSessionTableName(), mockDynamoDbClient);
+	});
+
 	describe("getParameter", () => {
 		it("returns the SSM parameter value when found", async () => {
 			const expectedValue = "some-secret-value";
@@ -35,6 +41,16 @@ describe("ReturnService test", () => {
 					Value: expectedValue
 				}
 			});
+			const result = await returnService.getParameter('test');
+			expect(result).toBe(expectedValue);
+		});
+
+		it("returns the env var not SSM parameter value when using mocks", async () => {
+			process.env.USE_MOCKED = "true";
+
+			const expectedValue = "some-secret-value";
+			process.env["test"] = expectedValue
+
 			const result = await returnService.getParameter('test');
 			expect(result).toBe(expectedValue);
 		});

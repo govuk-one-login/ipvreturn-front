@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { EnvironmentVariables } from "../utils/EnvironmentVariables";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { loggingHelper } from "../utils/LoggingHelper";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
 
@@ -68,7 +68,7 @@ export class ReturnController {
 				  };
 
     			try {
-    				const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
+    				const resp: AxiosResponse = await req.axios.get(sessionUrl, { headers });
     				loggingHelper.info("Received response", { "response":resp?.data, "statusCode":resp?.status });
 
     				if (resp.data && resp.status === 200 &&
