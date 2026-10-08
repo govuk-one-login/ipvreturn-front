@@ -108,7 +108,7 @@ Mappings:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       SESSIONTABLENAME: "IPR-front-sessions-dev"
       REDIRECTURL: "https://ipvreturn-front.return.dev.account.gov.uk/callback"
-      DISCOVERYENDPOINT: "https://ipr-oidc-stub-oidcstub.return.dev.account.gov.uk"
+      DISCOVERYENDPOINT: "https://ipvreturn-oidc-stub-oidcstub.return.dev.account.gov.uk"
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
       minECSCount: 1
       maxECSCount: 4
