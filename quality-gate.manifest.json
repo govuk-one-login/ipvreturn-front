@@ -30,14 +30,6 @@
             "file": ".github/workflows/pull-request-sonar.yml",
             "path": "jobs.run-tests"
           }
-        },
-        {
-          "check-types": ["vulnerability detection"],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/dependabot.yml"
-          }
         }
       ]
     }
