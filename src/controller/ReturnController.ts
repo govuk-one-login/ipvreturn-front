@@ -7,6 +7,7 @@ import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
+import { Request, Response } from "express";
 
 export class ReturnController {
   private static instance: ReturnController;
@@ -71,7 +72,7 @@ export class ReturnController {
     return authorizeUrl.href;
   }
 
-  async handleRedirect(req: any, res: any): Promise<void> {
+  async handleRedirect(req: Request, res: Response): Promise<void> {
     if (req.query) {
       loggingHelper.info("Query params received", { queryParams: req.query });
       if (req.query.error) {
@@ -91,7 +92,7 @@ export class ReturnController {
             code: req.query.code,
             state: req.query.state,
           });
-          await this.iprService.deleteSession(req.query.state);
+          await this.iprService.deleteSession(req.query.state as string);
         } catch {
           this.redirectToDashboard(res, "Got error deleting record from DB");
           return;
@@ -145,7 +146,7 @@ export class ReturnController {
           this.redirectToDashboard(
             res,
             "Received error calling /session and redirecting to RP",
-            e
+            e as Error
           );
           return;
         }
@@ -159,7 +160,7 @@ export class ReturnController {
     }
   }
 
-  redirectToDashboard(res: any, reason: string, error?: any): void {
+  redirectToDashboard(res: Response, reason: string, error?: Error): void {
     if (error) {
       loggingHelper.error("Redirecting to accounts dashboard", {
         reason,

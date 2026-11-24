@@ -5,11 +5,20 @@ import { ReturnService } from "../../../services/ReturnService";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import axios from "axios";
+import { Request } from "express";
 
 let returnCtrl: ReturnController;
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockedreturnService = mock<ReturnService>();
-const defaultMockRequest = { headers: {} };
+const createMockRequest = (
+  overrides: Record<keyof Request, unknown> | {} = {}
+) =>
+  ({
+    headers: {},
+    ...overrides,
+  }) as Request;
+
+const defaultMockRequest = { headers: {} } as Request;
 let redirectToDashboardSpy: any;
 jest.mock("axios");
 
@@ -70,7 +79,7 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect when query params are missing", async () => {
-    await returnCtrl.handleRedirect(defaultMockRequest, mockResponse);
+    await returnCtrl.handleRedirect(createMockRequest(), mockResponse);
     expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(
       1,
       mockResponse,
@@ -83,13 +92,13 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect when query error received", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         error: "invalid_request",
         error_description: "Unsupported%20response",
       },
-    };
+    });
+
     await returnCtrl.handleRedirect(mockRequest, mockResponse);
     expect(redirectToDashboardSpy).toHaveBeenCalledWith(
       mockResponse,
@@ -102,13 +111,13 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect and redirect to RP successfully", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
+
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
@@ -125,7 +134,7 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect and redirect to RP successfully with encoded header", async () => {
-    const mockRequest = {
+    const mockRequest = createMockRequest({
       ...defaultMockRequest,
       headers: {
         "txma-audit-encoded": "dummy-txma-header",
@@ -134,7 +143,8 @@ describe("returnController test", () => {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
+
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
@@ -156,13 +166,12 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect and redirect to accounts dashboard as status 'pending'", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: { status: "pending" },
@@ -175,13 +184,12 @@ describe("returnController test", () => {
   });
 
   it("handles redirect to DBS RP successfully when redirect url does not contain www", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
@@ -198,13 +206,12 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect to DBS RP successfully when redirect url contains www", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
@@ -221,13 +228,13 @@ describe("returnController test", () => {
   });
 
   it("handles redirect to DVLA RP successfully when redirect url does not contain www", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
+
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
@@ -243,13 +250,12 @@ describe("returnController test", () => {
   });
 
   it("handles Redirect to DVLA RP successfully when redirect url contains www", async () => {
-    const mockRequest = {
-      ...defaultMockRequest,
+    const mockRequest = createMockRequest({
       query: {
         state: "471600",
         code: "abcd123",
       },
-    };
+    });
     mockedAxios.get.mockResolvedValue({
       status: 200,
       data: {
