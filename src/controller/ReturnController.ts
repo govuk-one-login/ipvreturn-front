@@ -79,6 +79,7 @@ export class ReturnController {
     }
 
     loggingHelper.info("Query params received", { queryParams: req.query });
+    
     if (req.query.error) {
       loggingHelper.error("Received error response from /authorize", {
         error: req.query.error,
@@ -87,6 +88,7 @@ export class ReturnController {
       this.redirectToDashboard(res, "Received error response from /authorize");
       return;
     }
+    
     if (req.query.state && req.query.code) {
       try {
         loggingHelper.info("Received success response", {
