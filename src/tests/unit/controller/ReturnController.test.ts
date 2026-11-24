@@ -58,6 +58,15 @@ describe("returnController test", () => {
     );
     flagSpy.mockRestore();
     expect(actualResult).toContain("vtr=%5B%22Cl.Cm.P2%22%5D");
+    expect(actualResult).toContain(
+      `&claims=${encodeURIComponent(
+        JSON.stringify({
+          userinfo: {
+            "https://vocab.account.gov.uk/v1/coreIdentityJWT": null,
+          },
+        })
+      )}`
+    );
   });
 
   it("handles Redirect when query params are missing", async () => {

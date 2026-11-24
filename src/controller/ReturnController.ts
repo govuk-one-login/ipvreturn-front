@@ -46,8 +46,16 @@ export class ReturnController {
       );
     }
 
+    const userInfoClaims = encodeURIComponent(
+      JSON.stringify({
+        userinfo: {
+          "https://vocab.account.gov.uk/v1/coreIdentityJWT": null,
+        },
+      })
+    );
+
     const authorizeUrl = EnvironmentVariables.getFeatureFlagIdentityRp()
-      ? `${discoveryEndpoint}/authorize?result=sign-in&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}&vtr=${encodeURIComponent(JSON.stringify(["Cl.Cm.P2"]))}}`
+      ? `${discoveryEndpoint}/authorize?result=sign-in&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}&vtr=${encodeURIComponent(JSON.stringify(["Cl.Cm.P2"]))}}&claims=${userInfoClaims}`
       : `${discoveryEndpoint}/authorize?result=sign-in&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
 
     loggingHelper.info("Authorize url", { authorizeUrl });
