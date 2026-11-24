@@ -110,50 +110,52 @@ export class ReturnController {
       ...createPersonalDataHeaders(sessionUrl, req),
     };
 
+    let resp: AxiosResponse;
+
     try {
-      const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
+      resp = await axios.get(sessionUrl, { headers });
       loggingHelper.info("Received response", {
         response: resp?.data,
         statusCode: resp?.status,
       });
-
-      if (
-        resp.data &&
-        resp.status === 200 &&
-        resp.data.redirect_uri &&
-        resp.data.status === "completed"
-      ) {
-        loggingHelper.info("Redirecting to RelyingParty", {
-          redirectUri: resp.data?.redirect_uri,
-        });
-        const rpUrl = new URL(resp.data.redirect_uri);
-
-        //To handle audit events that were generated from these RPs before updated to registry was made
-        //https://govukverify.atlassian.net/browse/F2F-958
-        if (
-          !rpUrl.hostname.startsWith("www") &&
-          (rpUrl.hostname === Constants.DBS_BASE_URL ||
-            rpUrl.hostname === Constants.DVLA_BASE_URL)
-        ) {
-          loggingHelper.info(
-            "Found DBS or DVLA hostname without www in redirect url hence appending it"
-          );
-          rpUrl.hostname = "www" + "." + rpUrl.hostname;
-        }
-        res.redirect(rpUrl.toString());
-        return;
-      } else {
-        this.redirectToDashboard(
-          res,
-          "Received no data, missing mandatory params in response or statusCode other than 200"
-        );
-        return;
-      }
     } catch (e) {
       this.redirectToDashboard(
         res,
         "Received error calling /session and redirecting to RP",
         e as Error
+      );
+      return;
+    }
+
+    if (
+      resp.data &&
+      resp.status === 200 &&
+      resp.data.redirect_uri &&
+      resp.data.status === "completed"
+    ) {
+      loggingHelper.info("Redirecting to RelyingParty", {
+        redirectUri: resp.data?.redirect_uri,
+      });
+      const rpUrl = new URL(resp.data.redirect_uri);
+
+      //To handle audit events that were generated from these RPs before updated to registry was made
+      //https://govukverify.atlassian.net/browse/F2F-958
+      if (
+        !rpUrl.hostname.startsWith("www") &&
+        (rpUrl.hostname === Constants.DBS_BASE_URL ||
+          rpUrl.hostname === Constants.DVLA_BASE_URL)
+      ) {
+        loggingHelper.info(
+          "Found DBS or DVLA hostname without www in redirect url hence appending it"
+        );
+        rpUrl.hostname = "www" + "." + rpUrl.hostname;
+      }
+      res.redirect(rpUrl.toString());
+      return;
+    } else {
+      this.redirectToDashboard(
+        res,
+        "Received no data, missing mandatory params in response or statusCode other than 200"
       );
       return;
     }
