@@ -32,9 +32,7 @@ export class ReturnController {
   async handleResumeReturnAuthUrl(): Promise<string> {
     const state = await this.iprService.createSession();
     loggingHelper.info("State ", { state });
-    const redirectUri = encodeURIComponent(
-      EnvironmentVariables.getRedirectUrl()
-    );
+    const redirectUri = EnvironmentVariables.getRedirectUrl();
     loggingHelper.info("RedirectUri", { redirectUri });
     const nonce = randomUUID();
     const discoveryEndpoint = EnvironmentVariables.getDiscoveryEndpoint();
@@ -46,20 +44,31 @@ export class ReturnController {
       );
     }
 
-    const userInfoClaims = encodeURIComponent(
-      JSON.stringify({
-        userinfo: {
-          "https://vocab.account.gov.uk/v1/coreIdentityJWT": null,
-        },
-      })
-    );
+    const queryParams = new URLSearchParams({
+      result: "sign-in",
+      response_type: "code",
+      scope: "openid",
+      client_id: ReturnController.clientId,
+      state,
+      redirect_uri: redirectUri,
+      nonce,
+    });
 
-    const authorizeUrl = EnvironmentVariables.getFeatureFlagIdentityRp()
-      ? `${discoveryEndpoint}/authorize?result=sign-in&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}&vtr=${encodeURIComponent(JSON.stringify(["Cl.Cm.P2"]))}}&claims=${userInfoClaims}`
-      : `${discoveryEndpoint}/authorize?result=sign-in&response_type=code&scope=openid&client_id=${ReturnController.clientId}&state=${state}&redirect_uri=${redirectUri}&nonce=${nonce}`;
-
-    loggingHelper.info("Authorize url", { authorizeUrl });
-    return authorizeUrl;
+    if (EnvironmentVariables.getFeatureFlagIdentityRp()) {
+      queryParams.append("vtr", JSON.stringify(["Cl.Cm.P2"]));
+      queryParams.append(
+        "claims",
+        JSON.stringify({
+          userinfo: {
+            "https://vocab.account.gov.uk/v1/coreIdentityJWT": null,
+          },
+        })
+      );
+    }
+    const authorizeUrl = new URL("/authorize", discoveryEndpoint);
+    authorizeUrl.search = queryParams.toString();
+    loggingHelper.info("Authorize url", { authorizeUrl: authorizeUrl.href });
+    return authorizeUrl.href;
   }
 
   async handleRedirect(req: any, res: any): Promise<any> {
