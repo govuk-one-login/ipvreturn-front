@@ -13,8 +13,8 @@
     "test": "npm run build && npm run unit",
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c eslint.config.mjs",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
-    "prettier": "prettier \"**/*.{js,md}\" --check",
-    "prettier:fix": "npm prettier --write",
+    "prettier": "prettier \"**/*.{js,md,ts}\" --check",
+    "prettier:fix": "npm run prettier -- --write",
     "test:ipvr": "bash ./checkIpvResume.sh"
   },
   "keywords": [],
