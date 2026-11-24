@@ -91,12 +91,11 @@ describe("returnController test", () => {
       },
     };
     await returnCtrl.handleRedirect(mockRequest, mockResponse);
-    expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(
-      1,
+    expect(redirectToDashboardSpy).toHaveBeenCalledWith(
       mockResponse,
       "Received error response from /authorize"
     );
-    expect(mockResponse.redirect).toHaveBeenCalledTimes(2);
+    expect(mockResponse.redirect).toHaveBeenCalledTimes(1);
     expect(mockResponse.redirect).toHaveBeenCalledWith(
       "https://accounts_dashboard_url"
     );

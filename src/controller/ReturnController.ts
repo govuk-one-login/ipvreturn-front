@@ -83,6 +83,7 @@ export class ReturnController {
           res,
           "Received error response from /authorize"
         );
+        return;
       }
       if (req.query.state && req.query.code) {
         try {
@@ -93,6 +94,7 @@ export class ReturnController {
           await this.iprService.deleteSession(req.query.state);
         } catch {
           this.redirectToDashboard(res, "Got error deleting record from DB");
+          return;
         }
         const sessionUrl = `${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`;
 
@@ -131,11 +133,13 @@ export class ReturnController {
               rpUrl.hostname = "www" + "." + rpUrl.hostname;
             }
             res.redirect(rpUrl.toString());
+            return;
           } else {
             this.redirectToDashboard(
               res,
               "Received no data, missing mandatory params in response or statusCode other than 200"
             );
+            return;
           }
         } catch (e) {
           this.redirectToDashboard(
@@ -143,12 +147,15 @@ export class ReturnController {
             "Received error calling /session and redirecting to RP",
             e
           );
+          return;
         }
       } else {
         this.redirectToDashboard(res, "Missing mandatory fields");
+        return;
       }
     } else {
       this.redirectToDashboard(res, "Missing query parameters in request");
+      return;
     }
   }
 
