@@ -25,7 +25,7 @@ export class EnvironmentVariables {
 
   private static readonly ACCOUNTS_DASHBOARD = process.env.ACCOUNTS_DASHBOARD;
 
-  private static FEATURE_FLAG_IDENTITY_RP =
+  private static readonly FEATURE_FLAG_IDENTITY_RP =
     process.env.FEATURE_FLAG_IDENTITY_RP;
 
   /**
@@ -163,6 +163,6 @@ export class EnvironmentVariables {
       );
       return false;
     }
-    return /^true$/i.test(this.FEATURE_FLAG_IDENTITY_RP);
+    return this.FEATURE_FLAG_IDENTITY_RP.trim() === "true";
   }
 }
