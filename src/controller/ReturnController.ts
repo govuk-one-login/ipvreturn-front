@@ -71,7 +71,7 @@ export class ReturnController {
     return authorizeUrl.href;
   }
 
-  async handleRedirect(req: any, res: any): Promise<any> {
+  async handleRedirect(req: any, res: any): Promise<void> {
     if (req.query) {
       loggingHelper.info("Query params received", { queryParams: req.query });
       if (req.query.error) {
