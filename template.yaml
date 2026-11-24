@@ -100,6 +100,7 @@ Mappings:
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
       minECSCount: 1
       maxECSCount: 4
+      USEIDENTTIYRP: true
     build:
       APIBASEURL: "https://api.return.build.account.gov.uk"
       DNSSUFFIX: "return.build.account.gov.uk"
@@ -111,6 +112,7 @@ Mappings:
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
       minECSCount: 6
       maxECSCount: 60
+      USEIDENTTIYRP: true
     staging:
       APIBASEURL: "https://api.return.staging.account.gov.uk"
       DNSSUFFIX: "return.staging.account.gov.uk"
@@ -122,6 +124,7 @@ Mappings:
       ACCOUNTSDASHBOARD: "https://home.staging.account.gov.uk"
       minECSCount: 2
       maxECSCount: 4
+      USEIDENTTIYRP: true
     integration:
       APIBASEURL: "https://api.return.integration.account.gov.uk"
       DNSSUFFIX: "return.integration.account.gov.uk"
@@ -133,6 +136,7 @@ Mappings:
       ACCOUNTSDASHBOARD: "https://home.integration.account.gov.uk"
       minECSCount: 2
       maxECSCount: 4
+      USEIDENTTIYRP: false
     production:
       APIBASEURL: "https://api.return.account.gov.uk"
       DNSSUFFIX: "return.account.gov.uk"
@@ -144,6 +148,7 @@ Mappings:
       ACCOUNTSDASHBOARD: "https://home.account.gov.uk"
       minECSCount: 6
       maxECSCount: 60
+      USEIDENTTIYRP: false
 
 Resources:
   # Security Groups for the ECS service and load balancer
@@ -472,6 +477,8 @@ Resources:
               Value: !FindInMap [ EnvironmentVariables, !Ref Environment, ACCOUNTSDASHBOARD ]
             - Name: CLIENT_ID_SSM_PATH
               Value: !Sub "/${Environment}/ipvreturn/CLIENT_ID"
+            - Name: FEATURE_FLAG_IDENTITY_RP
+              Value: !FindInMap [ EnvironmentVariables, !Ref Environment, USEIDENTTIYRP ]
           Secrets:
             - Name: DT_TENANT
               ValueFrom: !Join
