@@ -1,19 +1,18 @@
 import app from "../../App";
 import { mock } from "jest-mock-extended";
 import { ReturnController } from "../../controller/ReturnController";
-
-const request = require("supertest");
+import supertest from "supertest";
 
 const mockReturnController = mock<ReturnController>();
 
 describe("Routes", () => {
   it("gets 200 OK from /healthcheck endpoint", async () => {
-    const response = await request(app).get("/healthcheck");
+    const response = await supertest(app).get("/healthcheck");
     expect(response.status).toEqual(200);
   });
 
   it("gets 302 redirect from /callback endpoint", async () => {
-    const response = await request(app).get("/callback");
+    const response = await supertest(app).get("/callback");
     expect(response.status).toEqual(302);
   });
 
@@ -26,7 +25,7 @@ describe("Routes", () => {
       .fn()
       .mockReturnValue(mockReturnController);
 
-    const response = await request(app).get("/resume");
+    const response = await supertest(app).get("/resume");
 
     expect(response.status).toEqual(302);
     expect(response.headers.location).toEqual(expectedRedirectUrl);
