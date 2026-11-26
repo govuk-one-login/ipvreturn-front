@@ -159,4 +159,27 @@ describe("EnvironmentVariables", () => {
       "Misconfigured Accounts dashboard url EnvironmentVariables"
     );
   });
+
+  it("should return false if FEATURE_FLAG_IDENTITY_RP is undefined", () => {
+    EnvironmentVariables.FEATURE_FLAG_IDENTITY_RP = undefined;
+    expect(EnvironmentVariables.getFeatureFlagIdentityRp()).toBe(false);
+  });
+
+  it("should return false if FEATURE_FLAG_IDENTITY_RP is not true", () => {
+    EnvironmentVariables.FEATURE_FLAG_IDENTITY_RP = "false";
+    expect(EnvironmentVariables.getFeatureFlagIdentityRp()).toBe(false);
+  });
+
+  it.each([" true", "true "])(
+    "should return true if FEATURE_FLAG_IDENTITY_RP if flag true with leading or trailing whitespace",
+    (flag: string) => {
+      EnvironmentVariables.FEATURE_FLAG_IDENTITY_RP = flag;
+      expect(EnvironmentVariables.getFeatureFlagIdentityRp()).toBe(true);
+    }
+  );
+
+  it("should return true if FEATURE_FLAG_IDENTITY_RP is true", () => {
+    EnvironmentVariables.FEATURE_FLAG_IDENTITY_RP = "true";
+    expect(EnvironmentVariables.getFeatureFlagIdentityRp()).toBe(true);
+  });
 });

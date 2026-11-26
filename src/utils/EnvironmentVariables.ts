@@ -25,6 +25,9 @@ export class EnvironmentVariables {
 
   private static readonly ACCOUNTS_DASHBOARD = process.env.ACCOUNTS_DASHBOARD;
 
+  private static readonly FEATURE_FLAG_IDENTITY_RP =
+    process.env.FEATURE_FLAG_IDENTITY_RP;
+
   /**
    * Accessor methods for env variable values
    */
@@ -148,5 +151,18 @@ export class EnvironmentVariables {
       );
     }
     return this.ACCOUNTS_DASHBOARD;
+  }
+
+  static getFeatureFlagIdentityRp(): boolean {
+    if (
+      !this.FEATURE_FLAG_IDENTITY_RP ||
+      this.FEATURE_FLAG_IDENTITY_RP.trim().length === 0
+    ) {
+      loggingHelper.warn(
+        `Misconfigured Feature Flag - Identity RP ${EnvironmentVariables.name} defaulting to false`
+      );
+      return false;
+    }
+    return this.FEATURE_FLAG_IDENTITY_RP.trim() === "true";
   }
 }

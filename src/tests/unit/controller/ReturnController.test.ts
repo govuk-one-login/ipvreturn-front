@@ -47,6 +47,28 @@ describe("returnController test", () => {
     );
   });
 
+  it("returns a redirectUrl with Identity vtr when feature flag is true", async () => {
+    const flagSpy = jest
+      .spyOn(EnvironmentVariables, "getFeatureFlagIdentityRp")
+      .mockReturnValueOnce(true);
+    const actualResult = await returnCtrl.handleResumeReturnAuthUrl();
+    const nonce = actualResult.split("nonce=", actualResult.length);
+    expect(actualResult).toBe(
+      `https://discovery/authorize?result=sign-in&response_type=code&scope=openid&client_id=mockClientId&state=123456&redirect_uri=https%3A%2F%2Fredirect&nonce=${nonce[1]}`
+    );
+    flagSpy.mockRestore();
+    expect(actualResult).toContain("vtr=%5B%22Cl.Cm.P2%22%5D");
+    expect(actualResult).toContain(
+      `&claims=${encodeURIComponent(
+        JSON.stringify({
+          userinfo: {
+            "https://vocab.account.gov.uk/v1/coreIdentityJWT": null,
+          },
+        })
+      )}`
+    );
+  });
+
   it("handles Redirect when query params are missing", async () => {
     await returnCtrl.handleRedirect(defaultMockRequest, mockResponse);
     expect(redirectToDashboardSpy).toHaveBeenNthCalledWith(
