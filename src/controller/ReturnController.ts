@@ -158,7 +158,6 @@ export class ReturnController {
       rpUrl.hostname = "www" + "." + rpUrl.hostname;
     }
     res.redirect(rpUrl.toString());
-    return;
   }
 
   redirectToDashboard(res: Response, reason: string, error?: Error): void {
