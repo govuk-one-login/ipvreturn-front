@@ -89,7 +89,10 @@ export class ReturnController {
       return;
     }
 
-    if (!req.query.state || !req.query.code) {
+    if (
+      typeof req.query.state !== "string" ||
+      typeof req.query.code !== "string"
+    ) {
       this.redirectToDashboard(res, "Missing mandatory fields");
       return;
     }
@@ -99,7 +102,7 @@ export class ReturnController {
         code: req.query.code,
         state: req.query.state,
       });
-      await this.iprService.deleteSession(req.query.state as string);
+      await this.iprService.deleteSession(req.query.state);
     } catch {
       this.redirectToDashboard(res, "Got error deleting record from DB");
       return;
