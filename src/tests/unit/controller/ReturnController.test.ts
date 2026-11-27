@@ -1,24 +1,34 @@
 /* eslint-disable max-lines-per-function */
 import { ReturnController } from "../../../controller/ReturnController";
-import { mock } from "jest-mock-extended";
-import { ReturnService } from "../../../services/ReturnService";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import axios from "axios";
+import type { Mocked } from 'vitest';
 
 let returnCtrl: ReturnController;
-const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockedreturnService = mock<ReturnService>();
+vi.mock("../../../services/ReturnService", () => {
+	class ReturnService {
+		constructor() {}
+
+		static getInstance = vi.fn().mockReturnValue(new ReturnService())
+		createSession = vi.fn().mockResolvedValue("123456")
+		deleteSession = vi.fn().mockImplementation(() => Promise.resolve())
+		getParameter = vi.fn().mockResolvedValue("mockClientId")
+	}
+	return { ReturnService }
+});
+
+const mockDynamoDbClient = vi.mocked(createDynamoDbClient());
 const defaultMockRequest = { headers: {} };
 let redirectToDashboardSpy: any;
-jest.mock("axios");
+vi.mock("axios");
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxios = axios as Mocked<typeof axios>;
 
 const mockResponse: any = {
-  json: jest.fn(),
-  status: jest.fn(),
-  redirect: jest.fn(),
+  json: vi.fn(),
+  status: vi.fn(),
+  redirect: vi.fn(),
 };
 
 describe("returnController test", () => {
@@ -27,15 +37,10 @@ describe("returnController test", () => {
       EnvironmentVariables.getSessionTableName(),
       mockDynamoDbClient
     );
-    redirectToDashboardSpy = jest.spyOn(returnCtrl, "redirectToDashboard");
-    mockedreturnService.createSession.mockResolvedValue("123456");
-    mockedreturnService.deleteSession.mockResolvedValue();
-    mockedreturnService.getParameter.mockResolvedValue("mockClientId");
-    // @ts-ignore
-    returnCtrl.iprService = mockedreturnService;
+    redirectToDashboardSpy = vi.spyOn(returnCtrl, "redirectToDashboard");
   });
 
-  it("returns an instance of returnController", async () => {
+  it("returns an instance of returnController", () => {
     expect(returnCtrl).toBeInstanceOf(ReturnController);
   });
 
