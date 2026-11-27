@@ -7,6 +7,7 @@ import { loggingHelper } from "../utils/LoggingHelper";
 import axios, { AxiosResponse } from "axios";
 import { Constants } from "../utils/Constants";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
+import { Request, Response } from "express";
 
 export class ReturnController {
   private static instance: ReturnController;
@@ -71,88 +72,98 @@ export class ReturnController {
     return authorizeUrl.href;
   }
 
-  async handleRedirect(req: any, res: any): Promise<any> {
-    if (req.query) {
-      loggingHelper.info("Query params received", { queryParams: req.query });
-      if (req.query.error) {
-        loggingHelper.error("Received error response from /authorize", {
-          error: req.query.error,
-          error_description: req.query.error_description,
-        });
-        this.redirectToDashboard(
-          res,
-          "Received error response from /authorize"
-        );
-      }
-      if (req.query.state && req.query.code) {
-        try {
-          loggingHelper.info("Received success response", {
-            code: req.query.code,
-            state: req.query.state,
-          });
-          await this.iprService.deleteSession(req.query.state);
-        } catch {
-          this.redirectToDashboard(res, "Got error deleting record from DB");
-        }
-        const sessionUrl = `${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`;
-
-        const headers = {
-          ...createPersonalDataHeaders(sessionUrl, req),
-        };
-
-        try {
-          const resp: AxiosResponse = await axios.get(sessionUrl, { headers });
-          loggingHelper.info("Received response", {
-            response: resp?.data,
-            statusCode: resp?.status,
-          });
-
-          if (
-            resp.data &&
-            resp.status === 200 &&
-            resp.data.redirect_uri &&
-            resp.data.status === "completed"
-          ) {
-            loggingHelper.info("Redirecting to RelyingParty", {
-              redirectUri: resp.data?.redirect_uri,
-            });
-            const rpUrl = new URL(resp.data.redirect_uri);
-
-            //To handle audit events that were generated from these RPs before updated to registry was made
-            //https://govukverify.atlassian.net/browse/F2F-958
-            if (
-              !rpUrl.hostname.startsWith("www") &&
-              (rpUrl.hostname === Constants.DBS_BASE_URL ||
-                rpUrl.hostname === Constants.DVLA_BASE_URL)
-            ) {
-              loggingHelper.info(
-                "Found DBS or DVLA hostname without www in redirect url hence appending it"
-              );
-              rpUrl.hostname = "www" + "." + rpUrl.hostname;
-            }
-            res.redirect(rpUrl.toString());
-          } else {
-            this.redirectToDashboard(
-              res,
-              "Received no data, missing mandatory params in response or statusCode other than 200"
-            );
-          }
-        } catch (e) {
-          this.redirectToDashboard(
-            res,
-            "Received error calling /session and redirecting to RP",
-            e
-          );
-        }
-      } else {
-        this.redirectToDashboard(res, "Missing mandatory fields");
-      }
-    } else {
+  async handleRedirect(req: Request, res: Response): Promise<void> {
+    if (!req.query) {
       this.redirectToDashboard(res, "Missing query parameters in request");
+      return;
     }
+
+    loggingHelper.info("Query params received", { queryParams: req.query });
+
+    if (req.query.error) {
+      loggingHelper.error("Received error response from /authorize", {
+        error: req.query.error,
+        error_description: req.query.error_description,
+      });
+      this.redirectToDashboard(res, "Received error response from /authorize");
+      return;
+    }
+
+    if (
+      typeof req.query.state !== "string" ||
+      typeof req.query.code !== "string"
+    ) {
+      this.redirectToDashboard(res, "Missing mandatory fields");
+      return;
+    }
+
+    try {
+      loggingHelper.info("Received success response", {
+        code: req.query.code,
+        state: req.query.state,
+      });
+      await this.iprService.deleteSession(req.query.state);
+    } catch {
+      this.redirectToDashboard(res, "Got error deleting record from DB");
+      return;
+    }
+    const sessionUrl = `${EnvironmentVariables.getApiBaseUrl()}/session?code=${req.query.code}`;
+
+    const headers = {
+      ...createPersonalDataHeaders(sessionUrl, req),
+    };
+
+    let resp: AxiosResponse;
+
+    try {
+      resp = await axios.get(sessionUrl, { headers });
+      loggingHelper.info("Received response", {
+        response: resp?.data,
+        statusCode: resp?.status,
+      });
+    } catch (e) {
+      this.redirectToDashboard(
+        res,
+        "Received error calling /session and redirecting to RP",
+        e as Error
+      );
+      return;
+    }
+
+    if (
+      !resp.data ||
+      resp.status !== 200 ||
+      !resp.data.redirect_uri ||
+      resp.data.status !== "completed"
+    ) {
+      this.redirectToDashboard(
+        res,
+        "Received no data, missing mandatory params in response or statusCode other than 200"
+      );
+      return;
+    }
+
+    loggingHelper.info("Redirecting to RelyingParty", {
+      redirectUri: resp.data?.redirect_uri,
+    });
+    const rpUrl = new URL(resp.data.redirect_uri);
+
+    //To handle audit events that were generated from these RPs before updated to registry was made
+    //https://govukverify.atlassian.net/browse/F2F-958
+    if (
+      !rpUrl.hostname.startsWith("www") &&
+      (rpUrl.hostname === Constants.DBS_BASE_URL ||
+        rpUrl.hostname === Constants.DVLA_BASE_URL)
+    ) {
+      loggingHelper.info(
+        "Found DBS or DVLA hostname without www in redirect url hence appending it"
+      );
+      rpUrl.hostname = "www" + "." + rpUrl.hostname;
+    }
+    res.redirect(rpUrl.toString());
   }
 
-  redirectToDashboard(res: any, reason: string, error?: any): void {
+  redirectToDashboard(res: Response, reason: string, error?: Error): void {
     if (error) {
       loggingHelper.error("Redirecting to accounts dashboard", {
         reason,
