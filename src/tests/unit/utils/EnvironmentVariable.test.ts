@@ -13,7 +13,7 @@ describe("EnvironmentVariables", () => {
   let cachedEnv = { ...process.env };
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
   });
 
   afterEach(() => {
@@ -28,7 +28,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if REDIRECT_URL is not provided", async () => {
     delete process.env.REDIRECT_URL;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getRedirectUrl()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -48,7 +48,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if CLIENT_ID_SSM_PATH is not provided", async () => {
     delete process.env.CLIENT_ID_SSM_PATH;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getClientIdSsmPath()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -68,7 +68,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if DISCOVERY_ENDPOINT is not provided", async () => {
     delete process.env.DISCOVERY_ENDPOINT;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getDiscoveryEndpoint()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -88,7 +88,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if SESSION_TABLE_NAME is not provided", async () => {
     delete process.env.SESSION_TABLE_NAME;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getSessionTableName()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -108,7 +108,7 @@ describe("EnvironmentVariables", () => {
   it("should assign default SESSION_TTL_IN_SECS if it does not have a value", async () => {
     delete process.env.SESSION_TTL_IN_SECS;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperWarn = jest.spyOn(loggingHelper, "warn");
+    const testLoggingHelperWarn = vi.spyOn(loggingHelper, "warn");
     const value = EnvironmentVariables.getSessionTtlInSecs();
     expect(value).toBe(300);
     expect(testLoggingHelperWarn).toHaveBeenCalledWith(
@@ -124,7 +124,7 @@ describe("EnvironmentVariables", () => {
   it("should assign default FRONT_END_CUSTOM_DOMAIN if it does not have a value", async () => {
     delete process.env.FRONT_END_CUSTOM_DOMAIN;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperWarn = jest.spyOn(loggingHelper, "warn");
+    const testLoggingHelperWarn = vi.spyOn(loggingHelper, "warn");
     const value = EnvironmentVariables.getFrontEndDomain();
     expect(value).toBe("localhost");
     expect(testLoggingHelperWarn).toHaveBeenCalledWith(
@@ -140,7 +140,7 @@ describe("EnvironmentVariables", () => {
   it("should assign default PORT if it does not have a value", async () => {
     delete process.env.PORT;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperWarn = jest.spyOn(loggingHelper, "warn");
+    const testLoggingHelperWarn = vi.spyOn(loggingHelper, "warn");
     const value = EnvironmentVariables.getPort();
     expect(value).toBe(8080);
     expect(testLoggingHelperWarn).toHaveBeenCalledWith(
@@ -156,7 +156,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if API_BASE_URL is not provided", async () => {
     delete process.env.API_BASE_URL;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getApiBaseUrl()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -176,7 +176,7 @@ describe("EnvironmentVariables", () => {
   it("should throw an error if ACCOUNTS_DASHBOARD is not provided", async () => {
     delete process.env.ACCOUNTS_DASHBOARD;
     const { EnvironmentVariables, loggingHelper } = await getDynamicImports();
-    const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
+    const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
     expect(() => EnvironmentVariables.getAccountsDashboardUrl()).toThrow(
       expect.objectContaining({
         statusCode: HttpCodesEnum.SERVER_ERROR,

@@ -1,7 +1,7 @@
 import app from "../../App";
-import { mock } from "jest-mock-extended";
 import { ReturnController } from "../../controller/ReturnController";
 import supertest from "supertest";
+import { mock } from 'vitest-mock-extended';
 
 const mockReturnController = mock<ReturnController>();
 
@@ -21,9 +21,7 @@ describe("Routes", () => {
     mockReturnController.handleResumeReturnAuthUrl.mockResolvedValue(
       expectedRedirectUrl
     );
-    ReturnController.getInstance = jest
-      .fn()
-      .mockReturnValue(mockReturnController);
+    ReturnController.getInstance = vi.fn().mockReturnValue(mockReturnController);
 
     const response = await supertest(app).get("/resume");
 

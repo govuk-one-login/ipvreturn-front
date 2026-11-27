@@ -1,22 +1,18 @@
 import { ReturnService } from "../../../services/ReturnService";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
-import { SSMClient } from "@aws-sdk/client-ssm";
 import { EnvironmentVariables } from "../../../utils/EnvironmentVariables";
 import { loggingHelper } from "../../../utils/LoggingHelper";
 
-jest.mock("@aws-sdk/client-ssm", () => ({
-  SSMClient: jest.fn(),
-  GetParameterCommand: jest.fn(),
+const mockSend = vi.fn();
+vi.mock("@aws-sdk/client-ssm", () => ({
+  SSMClient: vi.fn(class {
+	constructor() {}
+	send = mockSend
+  }),
+  GetParameterCommand: vi.fn(),
 }));
 
-const MockedSSMClient = SSMClient as jest.Mock;
-const mockSend = jest.fn();
-
-MockedSSMClient.mockImplementation(() => ({
-  send: mockSend,
-}));
-
-const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
+const mockDynamoDbClient = vi.mocked(createDynamoDbClient());
 
 let returnService: ReturnService;
 
@@ -66,7 +62,7 @@ describe("ReturnService test", () => {
 
   describe("createSession", () => {
     it("successfully saves session", async () => {
-      mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+      mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
       const actualResult = await returnService.createSession();
 
       expect(actualResult).toMatch(
@@ -74,10 +70,10 @@ describe("ReturnService test", () => {
       );
     });
 
-    it("throws error if saving session to dynamo fails", () => {
-      mockDynamoDbClient.send = jest.fn().mockRejectedValueOnce({});
+    it("throws error if saving session to dynamo fails", async () => {
+      mockDynamoDbClient.send = vi.fn().mockRejectedValueOnce({});
 
-      expect(returnService.createSession()).rejects.toThrow(
+      await expect(returnService.createSession()).rejects.toThrow(
         "Error updating session record"
       );
     });
@@ -85,8 +81,8 @@ describe("ReturnService test", () => {
 
   describe("deleteSession", () => {
     it("successfully deletes session", async () => {
-      const testLoggingHelper = jest.spyOn(loggingHelper, "info");
-      mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+      const testLoggingHelper = vi.spyOn(loggingHelper, "info");
+      mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
       const state = await returnService.createSession();
       const actualResult = await returnService.deleteSession(state);
 
@@ -112,11 +108,11 @@ describe("ReturnService test", () => {
     });
 
     it("throws error when delete session fails", async () => {
-      const testLoggingHelperInfo = jest.spyOn(loggingHelper, "info");
-      const testLoggingHelperError = jest.spyOn(loggingHelper, "error");
-      mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({});
+      const testLoggingHelperInfo = vi.spyOn(loggingHelper, "info");
+      const testLoggingHelperError = vi.spyOn(loggingHelper, "error");
+      mockDynamoDbClient.send = vi.fn().mockResolvedValueOnce({});
       const state = await returnService.createSession();
-      mockDynamoDbClient.send = jest.fn().mockRejectedValueOnce({});
+      mockDynamoDbClient.send = vi.fn().mockRejectedValueOnce({});
 
       await expect(returnService.deleteSession(state)).rejects.toThrow(
         "deleteItem - failed: got error deleting session record"
